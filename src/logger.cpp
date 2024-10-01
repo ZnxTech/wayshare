@@ -1,6 +1,7 @@
 #include "logger.hpp"
 
-void logf(int severity, char* format, ...) {
+#ifdef __debug__ 
+void logf(int severity, const char* format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -26,3 +27,10 @@ void logf(int severity, char* format, ...) {
 
     va_end(args);
 }
+
+#else
+void logf(int severity, const char* format, ...) {
+    // empty function, the compiler will ignore this.
+}
+
+#endif

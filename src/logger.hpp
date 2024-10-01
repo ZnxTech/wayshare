@@ -4,6 +4,6 @@
 #include <cstdio>
 #include <cstdarg>
 
-void logf(int severity, char* format, ...);
+void logf(int severity, const char* format, ...);
 
 #endif
