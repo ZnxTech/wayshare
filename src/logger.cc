@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "logger.hh"
 
 #ifdef DEBUG
 void logf(int severity, const char* format, ...) {

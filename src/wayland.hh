@@ -3,8 +3,8 @@
 
 #include <wayland-client.h>
 #include <cstring>
-#include "wlr-screencopy-unstable-v1.h"
-#include "logger.hpp"
+#include "wlr-screencopy-unstable-v1.hh"
+#include "logger.hh"
 
 struct wl_state {
     // base wayland connection objects
@@ -13,6 +13,8 @@ struct wl_state {
 
     // wayland screencopy objects
     zwlr_screencopy_manager_v1* screencopy_manager = nullptr;
+    int output_count = 0; 
+    wl_output** outputs = nullptr;
 };
 
 bool wl_connect(wl_state& state, const char* name);

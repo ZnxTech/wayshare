@@ -1,4 +1,4 @@
-#include "wayland.hpp"
+#include "wayland.hh"
 
 bool wl_connect(wl_state& state, const char* name) {
     state.display = wl_display_connect(name);
@@ -14,9 +14,12 @@ static void wl_registry_event_global(void* data, wl_registry* registry, uint32_t
     logf(0, "global event: name.%i v.%i, %s\n", name, version, interface);
 
     if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {
-        wl_state state = *(wl_state*)data;
         logf(0, "wlroots screencopy found.\n");
+        wl_state state = *(wl_state*)data;
+        state.screencopy_manager = (zwlr_screencopy_manager_v1*)wl_registry_bind(state.registry, name, &zwlr_screencopy_manager_v1_interface, version);
     }
+
+
 }
 
 static void wl_registry_event_global_remove(void* data, wl_registry* registry, uint32_t name) {
@@ -41,4 +44,9 @@ bool wl_register_globals(wl_state& state) {
 
 void wl_disconnect(wl_state &state) {
     wl_display_disconnect(state.display);
+}
+
+void wl_append_output(wl_state& state, wl_output* output) {
+    state.output_count++;
+    state.outputs = (wl_output**)malloc(sizeof(wl_output*) * state.output_count);
 }
