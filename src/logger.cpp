@@ -1,6 +1,6 @@
 #include "logger.hpp"
 
-#ifdef __debug__ 
+#ifdef DEBUG
 void logf(int severity, const char* format, ...) {
     va_list args;
     va_start(args, format);

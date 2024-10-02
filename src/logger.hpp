@@ -1,5 +1,5 @@
-#ifndef logger_h
-#define logger_h
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <cstdio>
 #include <cstdarg>
