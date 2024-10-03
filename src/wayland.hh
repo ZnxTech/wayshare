@@ -3,7 +3,9 @@
 
 #include <wayland-client.h>
 #include <cstring>
+#include <vector>
 #include "wlr-screencopy-unstable-v1.hh"
+#include "cosmic-screencopy-unstable-v2.hh"
 #include "logger.hh"
 
 struct wl_state {
@@ -12,9 +14,9 @@ struct wl_state {
     wl_registry *registry = nullptr;
 
     // wayland screencopy objects
-    zwlr_screencopy_manager_v1 *screencopy_manager = nullptr;
-    int output_count = 0; 
-    wl_output **outputs;
+    zwlr_screencopy_manager_v1 *wlr_screencopy_manager = nullptr;
+    zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager = nullptr;
+    std::vector<wl_output*> outputs;
 };
 
 bool wl_connect(wl_state &state, const char *name);
