@@ -2,7 +2,7 @@
 #include "logger.hh"
 #include "wayland.hh"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
     // connection init
     struct wl_state state = {};
