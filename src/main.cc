@@ -19,6 +19,10 @@ int main(int argc, char *argv[]) {
     }
     logf(0, "screencopy protocol found.\n");
 
+    while (wl_display_dispatch(state.display) != -1) {
+
+    }
+
     // fin
     wl_disconnect(state);
     return 0;

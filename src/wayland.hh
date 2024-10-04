@@ -8,15 +8,32 @@
 #include "cosmic-screencopy-unstable-v2.hh"
 #include "logger.hh"
 
+struct wl_output_data {
+    // wayland output object
+    wl_output *output = nullptr;
+
+    // output data
+    int32_t x;
+    int32_t y;
+    int32_t width;
+    int32_t height;
+    int32_t transform;
+    int32_t scale_factor;
+
+    // for debugging
+    const char *name;
+    const char *model;
+};
+
 struct wl_state {
     // base wayland connection objects
     wl_display *display   = nullptr;
     wl_registry *registry = nullptr;
 
     // wayland screencopy objects
-    zwlr_screencopy_manager_v1 *wlr_screencopy_manager = nullptr;
+    zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;
     zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager = nullptr;
-    std::vector<wl_output*> outputs;
+    std::vector<wl_output_data> outputs;
 };
 
 bool wl_connect(wl_state &state, const char *name);
