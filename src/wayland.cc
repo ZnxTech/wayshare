@@ -60,12 +60,14 @@ static void wl_registry_event_global(void *data, wl_registry *registry, uint32_t
         logf(0, "wlroots screencopy found.\n");
         wl_state &state = *(wl_state*)data;
         state.wlr_screencopy_manager = (zwlr_screencopy_manager_v1*)wl_registry_bind(state.registry, name, &zwlr_screencopy_manager_v1_interface, version);
+        state.wlr_found = true;
     }
 
     if (strcmp(interface, zcosmic_screencopy_manager_v2_interface.name) == 0) {
         logf(0, "cosmic screencopy found.\n");
         wl_state &state = *(wl_state*)data;
         state.cosmic_screencopy_manager = (zcosmic_screencopy_manager_v2*)wl_registry_bind(state.registry, name, &zcosmic_screencopy_manager_v2_interface, version);
+        state.cosmic_found = true;
     }
 
     if (strcmp(interface, wl_output_interface.name) == 0) {

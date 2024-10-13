@@ -33,6 +33,8 @@ struct wl_state {
     // wayland screencopy objects
     zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;
     zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager = nullptr;
+    bool wlr_found = false;
+    bool cosmic_found = false;
     std::vector<wl_output_data> outputs;
 };
 
