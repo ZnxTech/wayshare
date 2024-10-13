@@ -3,20 +3,20 @@
 static void wl_output_event_geometry(void *data, wl_output *wl_output, int32_t x, int32_t y, int32_t width_mm, int32_t height_mm, int32_t subpixel, const char *make, const char *model, int32_t transform) {
     logf(0, "wl_output geometry event: make:\"%s\", model:\"%s\"\n", make, model);
     static int output_count = 0;
-    wl_state &state = *(wl_state*)data;
-    state.outputs[output_count].x = x;
-    state.outputs[output_count].y = y;
-    state.outputs[output_count].transform = transform;
-    state.outputs[output_count].model = model;
+    wl_output_data &output_data = *(wl_output_data*)data;
+    output_data.x = x;
+    output_data.y = y;
+    output_data.transform = transform;
+    output_data.model = model;
     output_count++;
 }
 
 static void wl_output_event_mode(void *data, wl_output *wl_output, uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
     logf(0, "wl_output mode event: w:%ipx, h:%ipx, rr:%ihz\n", width, height, refresh / 1000 );
     static int output_count = 0;
-    wl_state &state = *(wl_state*)data;
-    state.outputs[output_count].width = width;
-    state.outputs[output_count].height = height;
+    wl_output_data &output_data = *(wl_output_data*)data;
+    output_data.width = width;
+    output_data.height = height;
     output_count++;
 }
 
@@ -27,16 +27,16 @@ static void wl_output_event_done(void *data, wl_output *wl_output) {
 static void wl_output_event_scale(void *data, wl_output *wl_output, int32_t factor) {
     logf(0, "wl_output scale event: factor:%i\n", factor);
     static int output_count = 0;
-    wl_state &state = *(wl_state*)data;
-    state.outputs[output_count].scale_factor = factor;
+    wl_output_data &output_data = *(wl_output_data*)data;
+    output_data.scale_factor = factor;
     output_count++;
 }
 
 static void wl_output_event_name(void *data, wl_output *wl_output, const char *name) {
     logf(0, "wl_output name event: name:%s\n", name);
     static int output_count = 0;
-    wl_state &state = *(wl_state*)data;
-    state.outputs[output_count].name = name;
+    wl_output_data &output_data = *(wl_output_data*)data;
+    output_data.name = name;
     output_count++;
 }
 
@@ -74,8 +74,8 @@ static void wl_registry_event_global(void *data, wl_registry *registry, uint32_t
         logf(0, "wayland output found.\n");
         wl_state &state = *(wl_state*)data;
         wl_output *output = (wl_output*)wl_registry_bind(state.registry, name, &wl_output_interface, version);
-        wl_output_add_listener(output, &output_listener, &state);
         wl_output_data output_data = { .output = output };
+        wl_output_add_listener(output, &output_listener, &output_data);
         state.outputs.push_back(output_data);
     }
 }
@@ -131,4 +131,12 @@ bool wl_connect_to_fd(wl_state &state, int fd) {
 
 void wl_disconnect(wl_state &state) {
     wl_display_disconnect(state.display);
+}
+
+static void wl_request_wlr_screencopy(wl_state &state) {
+
+}
+
+static void wl_request_cosmic_screencopy(wl_state &state) {
+
 }
