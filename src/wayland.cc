@@ -2,22 +2,18 @@
 
 static void wl_output_event_geometry(void *data, wl_output *wl_output, int32_t x, int32_t y, int32_t width_mm, int32_t height_mm, int32_t subpixel, const char *make, const char *model, int32_t transform) {
     logf(0, "wl_output geometry event: make:\"%s\", model:\"%s\"\n", make, model);
-    static int output_count = 0;
     wl_output_data &output_data = *(wl_output_data*)data;
     output_data.x = x;
     output_data.y = y;
     output_data.transform = transform;
     output_data.model = model;
-    output_count++;
 }
 
 static void wl_output_event_mode(void *data, wl_output *wl_output, uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
     logf(0, "wl_output mode event: w:%ipx, h:%ipx, rr:%ihz\n", width, height, refresh / 1000 );
-    static int output_count = 0;
     wl_output_data &output_data = *(wl_output_data*)data;
     output_data.width = width;
     output_data.height = height;
-    output_count++;
 }
 
 static void wl_output_event_done(void *data, wl_output *wl_output) {
@@ -26,18 +22,14 @@ static void wl_output_event_done(void *data, wl_output *wl_output) {
 
 static void wl_output_event_scale(void *data, wl_output *wl_output, int32_t factor) {
     logf(0, "wl_output scale event: factor:%i\n", factor);
-    static int output_count = 0;
     wl_output_data &output_data = *(wl_output_data*)data;
     output_data.scale_factor = factor;
-    output_count++;
 }
 
 static void wl_output_event_name(void *data, wl_output *wl_output, const char *name) {
     logf(0, "wl_output name event: name:%s\n", name);
-    static int output_count = 0;
     wl_output_data &output_data = *(wl_output_data*)data;
     output_data.name = name;
-    output_count++;
 }
 
 static void wl_output_event_description(void *data, wl_output *wl_output, const char *description) {
