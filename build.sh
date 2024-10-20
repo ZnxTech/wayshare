@@ -30,6 +30,7 @@ gcc ./src/* ./lib_protocols/* \
     -o ./bin/wayland \
     -x c++ \
     -shared-libgcc \
+    -l m \
     -l stdc++ \
     -l wayland-client \
     -D WLR_USE_UNSTABLE \
@@ -43,6 +44,7 @@ gcc ./src/* ./lib_protocols/* \
     -o ./bin/wayland_r \
     -x c++ \
     -shared-libgcc \
+    -l m \
     -l stdc++ \
     -l wayland-client \
     -D WLR_USE_UNSTABLE
