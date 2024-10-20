@@ -70,6 +70,12 @@ static void wl_registry_event_global(void *data, wl_registry *registry, uint32_t
         wl_output_add_listener(output, &output_listener, &output_data);
         state.outputs.push_back(output_data);
     }
+
+    if (strcmp(interface, wl_shm_interface.name) == 0) {
+        logf(0, "wayland shm found.\n");
+        wl_state &state = *(wl_state*)data;
+        state.shm = (wl_shm*)wl_registry_bind(state.registry, name, &wl_shm_interface, version);
+    }
 }
 
 static void wl_registry_event_global_remove(void *data, wl_registry *registry, uint32_t name) {

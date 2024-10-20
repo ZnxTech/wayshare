@@ -29,6 +29,7 @@ struct wl_state {
     // base wayland connection objects
     wl_display *display   = nullptr;
     wl_registry *registry = nullptr;
+    wl_shm *shm = nullptr;
 
     // wayland screencopy objects
     zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;
