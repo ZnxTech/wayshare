@@ -26,7 +26,7 @@ all: ./build/bin/wayshare ./build/bin/wayshare-debug
 
 ./build/bin/wayshare-debug: $(cxx_obj_debug) $(wl_obj)
 	@mkdir ./build/bin -p
-	g++ $(cxx_obj) $(wl_obj) -o $@ $(cxx_defs) $(cxx_libs)
+	g++ $(cxx_obj_debug) $(wl_obj) -o $@ $(cxx_defs) $(cxx_libs)
 
 # code compilation
 $(cxx_obj): ./build/obj/%.o: ./src/%.cc $(cxx_head) $(wl_head)
