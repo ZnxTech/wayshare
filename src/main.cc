@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
 
     // connection init
     struct wl_state state = {};
-    if (!wl_connect(state, NULL)) {
+    if (!wl_connect(&state, NULL)) {
         return 1;
     }
 
@@ -16,6 +16,6 @@ int main(int argc, char *argv[]) {
     }
 
     // fin
-    wl_disconnect(state);
+    wl_disconnect(&state);
     return 0;
 }

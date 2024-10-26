@@ -37,10 +37,30 @@ struct wl_state {
     std::vector<wl_output_data*> outputs;
 };
 
-bool wl_connect(wl_state &state, const char *name);
+bool wl_connect(wl_state *state, const char *name);
 
-bool wl_connect_to_fd(wl_state &state, int fd);
+bool wl_connect_to_fd(wl_state *state, int fd);
 
-void wl_disconnect(wl_state &state);
+void wl_disconnect(wl_state *state);
+
+static void wl_output_event_geometry(void *data, wl_output *wl_output,
+        int32_t x, int32_t y, int32_t width_mm, int32_t height_mm,
+        int32_t subpixel, const char *make, const char *model, int32_t transform);
+
+static void wl_output_event_mode(void *data, wl_output *wl_output,
+        uint32_t flags, int32_t width, int32_t height, int32_t refresh);
+
+static void wl_output_event_done(void *data, wl_output *wl_output);
+
+static void wl_output_event_scale(void *data, wl_output *wl_output, int32_t factor);
+
+static void wl_output_event_name(void *data, wl_output *wl_output, const char *name);
+
+static void wl_output_event_description(void *data, wl_output *wl_output, const char *description);
+
+static void wl_registry_event_global(void *data, wl_registry *registry,
+        uint32_t name, const char *, uint32_t version);
+
+static void wl_registry_event_global_remove(void *data, wl_registry *registry, uint32_t name);
 
 #endif
