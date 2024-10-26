@@ -21,8 +21,8 @@ struct wl_output_data {
     int32_t scale_factor;
 
     // for debugging
-    const char *name;
-    const char *model;
+    const char *name  = nullptr;
+    const char *model = nullptr;
 };
 
 struct wl_state {
@@ -34,9 +34,7 @@ struct wl_state {
     // wayland screencopy objects
     zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;
     zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager = nullptr;
-    bool wlr_found = false;
-    bool cosmic_found = false;
-    std::vector<wl_output_data> outputs;
+    std::vector<wl_output_data*> outputs;
 };
 
 bool wl_connect(wl_state &state, const char *name);
