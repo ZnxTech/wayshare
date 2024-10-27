@@ -30,6 +30,7 @@ struct wl_state {
     wl_display *display   = nullptr;
     wl_registry *registry = nullptr;
     wl_shm *shm = nullptr;
+    zxdg_output_manager_v1 *output_manager = nullptr;
 
     // wayland screencopy objects
     zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;

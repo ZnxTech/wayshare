@@ -80,6 +80,13 @@ static void wl_registry_event_global(void *data, wl_registry *registry,
         wl_state *state = (wl_state*)data;
         state->shm = (wl_shm*)wl_registry_bind(state->registry, name, &wl_shm_interface, version);
     }
+
+    if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
+        logf(0, "xdg output_manager found.\n");
+        wl_state *state = (wl_state*)data;
+        state->output_manager = (zxdg_output_manager_v1*)wl_registry_bind(
+            state->registry, name, &zxdg_output_manager_v1_interface, version);
+    }
 }
 
 static void wl_registry_event_global_remove(void *data, wl_registry *registry, uint32_t name) {
@@ -122,3 +129,39 @@ static void wl_request_wlr_screencopy(wl_state &state) {
 static void wl_request_cosmic_screencopy(wl_state &state) {
 
 }
+
+static void xdg_output_event_logical_position(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
+    logf(0, "xdg_output logical_position event: x:%i y:%i\n", x, y);
+    wl_output_data *output_data = (wl_output_data*)data;
+    output_data->x = x;
+    output_data->y = y;
+}
+
+static void xdg_output_event_logical_size(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
+    logf(0, "xdg_output logical_size event:\n");
+    wl_output_data *output_data = (wl_output_data*)data;
+    output_data->width = width;
+    output_data->height = height;
+}
+
+static void xdg_output_event_done(void *data, zxdg_output_v1 *zxdg_output_v1) {
+    logf(0, "xdg_output done event:\n");
+
+}
+
+static void xdg_output_event_name(void *data, zxdg_output_v1 *zxdg_output_v1, const char *name) {
+    logf(0, "xdg_output name event:\n");
+
+}
+
+static void xdg_output_event_description(void *data, zxdg_output_v1 *zxdg_output_v1, const char *description) {
+    logf(0, "xdg_output description event:\n");
+}
+
+static const zxdg_output_v1_listener xdg_output_listener = {
+    .logical_position = xdg_output_event_logical_position,
+    .logical_size     = xdg_output_event_logical_size,
+    .done             = xdg_output_event_done,
+    .name             = xdg_output_event_name,
+    .description      = xdg_output_event_description
+};
