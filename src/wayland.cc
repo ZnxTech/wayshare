@@ -98,28 +98,30 @@ static const wl_registry_listener registry_listener {
     .global_remove = wl_registry_event_global_remove
 };
 
-bool wl_connect(wl_state *state, const char *name) {
+wl_state *wl_connect(const char *name) {
+    wl_state *state = new wl_state;
     state->display = wl_display_connect(name);
     if (state->display == NULL) {
         logf(2, "wayland display not found.\n");
-        return false;
+        return NULL;
     }
     logf(0, "wayland display found.\n");
 
     state->registry = wl_display_get_registry(state->display);
     if (state->registry == NULL) {
         logf(2, "wayland registry not found.\n");
-        return false;
+        return NULL;
     }
     logf(0, "wayland registry found.\n");
 
     wl_registry_add_listener(state->registry, &registry_listener, state);
-    int dispatch_count = wl_display_dispatch(state->display);
-    return dispatch_count != -1;
+    wl_display_roundtrip(state->display);
+    return state;
 }
 
 void wl_disconnect(wl_state *state) {
     wl_display_disconnect(state->display);
+    delete state;
 }
 
 static void wl_request_wlr_screencopy(wl_state &state) {
