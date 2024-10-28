@@ -70,9 +70,11 @@ static void wl_registry_event_global(void *data, wl_registry *registry,
         logf(0, "wayland output found.\n");
         wl_state *state = (wl_state*)data;
         wl_output *output = (wl_output*)wl_registry_bind(state->registry, name, &wl_output_interface, version);
-        wl_output_data output_data = { .output = output };
-        wl_output_add_listener(output, &output_listener, &output_data);
-        state->outputs.push_back(&output_data);
+        wl_output_data *output_data = new wl_output_data;
+        output_data->state = state;
+        output_data->output = output;
+        wl_output_add_listener(output, &output_listener, output_data);
+        state->outputs.push_back(output_data);
     }
 
     if (strcmp(interface, wl_shm_interface.name) == 0) {
