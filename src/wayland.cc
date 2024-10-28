@@ -125,14 +125,6 @@ void wl_disconnect(wl_state *state) {
     delete state;
 }
 
-static void wl_request_wlr_screencopy(wl_state &state) {
-
-}
-
-static void wl_request_cosmic_screencopy(wl_state &state) {
-
-}
-
 static void xdg_output_event_logical_position(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
     logf(0, "xdg_output logical_position event: x:%i y:%i\n", x, y);
     wl_output_data *output_data = (wl_output_data*)data;
@@ -168,3 +160,11 @@ static const zxdg_output_v1_listener xdg_output_listener = {
     .name             = xdg_output_event_name,
     .description      = xdg_output_event_description
 };
+
+static void wl_request_wlr_screencopy(wl_state *state, wl_output_data *output_data, int32_t cursor) {
+
+}
+
+static void wl_request_cosmic_screencopy(wl_state &state) {
+
+}
