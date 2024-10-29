@@ -6,7 +6,7 @@ static int create_shm_fd() {
         // init name string
         int n = 8;
         const char *name_temp = "/wayshare-shm-";
-        char *name = new char[strlen(name_temp) + n];
+        char *name = new char[strlen(name_temp) + n + 1];
         strcpy(name, name_temp);
 
         // set seed to ns time
