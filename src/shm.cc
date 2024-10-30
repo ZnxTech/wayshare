@@ -6,7 +6,7 @@ static int create_shm_fd() {
         // init name string
         int n = 8;
         const char *name_temp = "/wayshare-shm-";
-        char *name = new char[strlen(name_temp) + n + 1];
+        char name[strlen(name_temp) + n + 1];
         strcpy(name, name_temp);
 
         // set seed to ns time
@@ -23,15 +23,13 @@ static int create_shm_fd() {
         logf(0, "creating shm file: %s\n", name);
 
         // try creating shm file
-        int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, 0600);
+        int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
         if (fd >= 0) {
             // shm successfully created, return fd
             logf(0, "created shm file: %i\n", fd);
-            delete name;
             return fd;
         }
         logf(1, "shm file creation failed, trying %i more times.\n", retries);
-        delete name;
         retries--;
     }
     // shm failed
