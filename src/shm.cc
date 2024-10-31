@@ -1,27 +1,62 @@
 #include "shm.hh"
 
-static int create_shm_fd() {
+const char *NAME_TEMP  = "/wayshare-shm-";
+const char *CHARSET    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const int   RAND_COUNT = 8;
+
+posix_shm_file create_shm_file(size_t size) {
+    const char *name = create_shm_name();
+    int fd = create_shm_fd(name);
+    posix_shm_file shm = {
+        .name = name,
+        .fd = fd,
+        .size = size
+    };
+
+    if (fd < 0) {
+        shm_unlink(name);
+        delete name;
+        return shm;
+    }
+
+    int ret = allocate_shm_fd(fd, size);
+    if (fd < 0) {
+        shm_unlink(name);
+        delete name;
+        shm.fd = -1;
+        return shm;
+    }
+
+    return shm;
+}
+
+int delete_shm_file(posix_shm_file shm) {
+    int ret = shm_unlink(shm.name);
+    delete[] shm.name;
+    return ret;
+}
+
+static const char *create_shm_name() {
+    // init name string
+    char *name = new char[strlen(NAME_TEMP) + RAND_COUNT + 1];
+    strcpy(name, NAME_TEMP);
+
+    // set seed to ns time
+    timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    srand(ts.tv_nsec);
+
+    // create random string
+    for (int i = 0; i < RAND_COUNT; i++) {
+        (name + strlen(NAME_TEMP))[i] = CHARSET[rand() % strlen(CHARSET)];
+    }
+    name[strlen(NAME_TEMP) + RAND_COUNT] = '\0';
+    return name;
+}
+
+static int create_shm_fd(const char *name) {
     int retries = 100;
     while (retries > 0) {
-        // init name string
-        int n = 8;
-        const char *name_temp = "/wayshare-shm-";
-        char name[strlen(name_temp) + n + 1];
-        strcpy(name, name_temp);
-
-        // set seed to ns time
-        timespec ts;
-        timespec_get(&ts, TIME_UTC);
-        srand(ts.tv_nsec);
-
-        // create random string
-        for (int i = 0; i < n; i++) {
-            (name+strlen(name_temp))[i] = 'A' + (rand() % 26);
-        }
-        name[strlen(name_temp) + n] = '\0';
-
-        logf(0, "creating shm file: %s\n", name);
-
         // try creating shm file
         int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
         if (fd >= 0) {
@@ -29,22 +64,15 @@ static int create_shm_fd() {
             logf(0, "created shm file: %i\n", fd);
             return fd;
         }
-        logf(1, "shm file creation failed, trying %i more times.\n", retries);
+        // shm failed, try again
+        delete[] name;
         retries--;
     }
-    // shm failed
+    // shm failed, return error
     return -1;
 }
 
-int allocate_shm_fd(size_t size) {
-    // create shm
-    int fd = create_shm_fd();
-    if (fd < 0) {
-        // invalid shm fd
-        logf(2, "could not create shm file.");
-        return -1;
-    }
-
+static int allocate_shm_fd(int fd, size_t size) {
     // allocate shm space
     int ret;
     int retries = 100;
@@ -57,5 +85,5 @@ int allocate_shm_fd(size_t size) {
         logf(2, "could not allocate shm space.");
         return -1;
     }
-    return fd;
+    return 0;
 }
