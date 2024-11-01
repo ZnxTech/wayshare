@@ -3,7 +3,7 @@
 box box_get_intersection(box b1, box b2) {
     int x1 = fmax(b1.x, b2.x);
     int y1 = fmax(b1.y, b2.y);
-    int x2 = fmin(b1.x + b1.width, b2.x = b2.width);
+    int x2 = fmin(b1.x + b1.width, b2.x + b2.width);
     int y2 = fmin(b1.y + b1.height, b2.y + b2.height);
 
     return {
@@ -15,5 +15,5 @@ box box_get_intersection(box b1, box b2) {
 }
 
 bool box_is_valid(box b) {
-    return (b.width > 0 || b.height > 0);
+    return (b.width > 0 && b.height > 0);
 }
