@@ -5,8 +5,8 @@ static void wl_output_event_geometry(void *data, wl_output *wl_output,
         int32_t subpixel, const char *make, const char *model, int32_t transform) {
     logf(0, "wl_output geometry event: make:\"%s\", model:\"%s\"\n", make, model);
     wl_output_data *output_data = (wl_output_data*)data;
-    output_data->x = x;
-    output_data->y = y;
+    output_data->area.x = x;
+    output_data->area.y = y;
     output_data->transform = transform;
     output_data->model = model;
 }
@@ -15,8 +15,8 @@ static void wl_output_event_mode(void *data, wl_output *wl_output,
         uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
     logf(0, "wl_output mode event: w:%ipx, h:%ipx, rr:%ihz\n", width, height, refresh / 1000 );
     wl_output_data *output_data = (wl_output_data*)data;
-    output_data->width = width;
-    output_data->height = height;
+    output_data->area.width = width;
+    output_data->area.height = height;
 }
 
 static void wl_output_event_done(void *data, wl_output *wl_output) {
@@ -144,15 +144,15 @@ void wl_disconnect(wl_state *state) {
 static void xdg_output_event_logical_position(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
     logf(0, "xdg_output logical_position event: x:%i y:%i\n", x, y);
     wl_output_data *output_data = (wl_output_data*)data;
-    output_data->x = x;
-    output_data->y = y;
+    output_data->area.x = x;
+    output_data->area.y = y;
 }
 
 static void xdg_output_event_logical_size(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
     logf(0, "xdg_output logical_size event:\n");
     wl_output_data *output_data = (wl_output_data*)data;
-    output_data->width = width;
-    output_data->height = height;
+    output_data->area.width = width;
+    output_data->area.height = height;
 }
 
 static void xdg_output_event_done(void *data, zxdg_output_v1 *zxdg_output_v1) {

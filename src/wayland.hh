@@ -13,10 +13,7 @@ struct wl_output_data {
     wl_output *output = nullptr;
 
     // output data
-    int32_t x;
-    int32_t y;
-    int32_t width;
-    int32_t height;
+    rect area;
     int32_t transform;
     int32_t scale_factor;
 
