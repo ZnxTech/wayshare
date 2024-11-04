@@ -116,7 +116,23 @@ wl_state *wl_connect(const char *name) {
     logf(0, "wayland registry found.\n");
 
     wl_registry_add_listener(state->registry, &registry_listener, state);
+    // registry events
     wl_display_roundtrip(state->display);
+    // output events
+    wl_display_roundtrip(state->display);
+
+    // check for xdg output manager
+    if (state->output_manager == nullptr) {
+        logf(1, "no xdg_output_manager was found.\n");
+        return state;
+    }
+
+    // get xdg output data
+    for (wl_output_data *output_data : state->outputs) {
+        zxdg_output_v1 *xdg_output = zxdg_output_manager_v1_get_xdg_output(state->output_manager, output_data->output);
+        zxdg_output_v1_add_listener(xdg_output, &xdg_output_listener, output_data);
+        wl_display_roundtrip(state->display);
+    }
     return state;
 }
 
