@@ -14,7 +14,6 @@
 // +-----------------+
 
 struct posix_shm_file {
-    const char* name;
     int fd;
     size_t size;
 };
@@ -23,9 +22,7 @@ struct posix_shm_file {
 // | public shm functions |
 // +----------------------+
 
-posix_shm_file create_shm_file(size_t size);
-
-int delete_shm_file(posix_shm_file shm);
+int create_shm_file(size_t size);
 
 // +-----------------------+
 // | private shm functions |
@@ -35,6 +32,6 @@ static const char *create_shm_name();
 
 static int create_shm_fd();
 
-static int allocate_shm_fd(size_t size);
+static int allocate_shm_fd(int fd, size_t size);
 
 #endif

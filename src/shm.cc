@@ -4,36 +4,22 @@ const char *NAME_TEMP  = "/wayshare-shm-";
 const char *CHARSET    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const int   RAND_COUNT = 8;
 
-posix_shm_file create_shm_file(size_t size) {
-    const char *name = create_shm_name();
-    int fd = create_shm_fd(name);
-    posix_shm_file shm = {
-        .name = name,
-        .fd = fd,
-        .size = size
-    };
+int create_shm_file(size_t size) {
+    int fd = create_shm_fd();
 
     if (fd < 0) {
-        shm_unlink(name);
-        delete name;
-        return shm;
+        logf(0, "failed to create shm file: %i\n", fd);
+        return fd;
     }
 
     int ret = allocate_shm_fd(fd, size);
     if (fd < 0) {
-        shm_unlink(name);
-        delete name;
-        shm.fd = -1;
-        return shm;
+        logf(0, "failed to allocate shm file: %i\n", fd);
+        return -1;
     }
 
-    return shm;
-}
-
-int delete_shm_file(posix_shm_file shm) {
-    int ret = shm_unlink(shm.name);
-    delete[] shm.name;
-    return ret;
+    logf(0, "created shm file: %i of size %i bytes.\n", fd, size);
+    return fd;
 }
 
 static const char *create_shm_name() {
@@ -54,14 +40,16 @@ static const char *create_shm_name() {
     return name;
 }
 
-static int create_shm_fd(const char *name) {
+static int create_shm_fd() {
     int retries = 100;
     while (retries > 0) {
+        const char* name = create_shm_name();
         // try creating shm file
         int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
         if (fd >= 0) {
             // shm successfully created, return fd
-            logf(0, "created shm file: %i\n", fd);
+            shm_unlink(name);
+            delete[] name;
             return fd;
         }
         // shm failed, try again
@@ -82,7 +70,6 @@ static int allocate_shm_fd(int fd, size_t size) {
     }
     if (ret < 0) {
         // could not allocate smh space
-        logf(2, "could not allocate shm space.");
         return -1;
     }
     return 0;
