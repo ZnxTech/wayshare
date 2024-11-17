@@ -42,7 +42,7 @@ static const char *create_shm_name() {
 
 static int create_shm_fd() {
     int retries = 100;
-    while (retries > 0) {
+    do {
         const char* name = create_shm_name();
         // try creating shm file
         int fd = shm_open(name, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -55,7 +55,7 @@ static int create_shm_fd() {
         // shm failed, try again
         delete[] name;
         retries--;
-    }
+    } while (retries > 0 && errno == EEXIST);
     // shm failed, return error
     return -1;
 }
@@ -63,14 +63,13 @@ static int create_shm_fd() {
 static int allocate_shm_fd(int fd, size_t size) {
     // allocate shm space
     int ret;
-    int retries = 100;
-    while (ret < 0 && retries > 0) {
+    do {
         ret = ftruncate(fd, size);
-        retries--;
-    }
+    } while (ret < 0 && errno == EINTR);
     if (ret < 0) {
         // could not allocate smh space
-        return -1;
-    }
+        close(fd);
+		return -1;
+	}
     return 0;
 }
