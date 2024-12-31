@@ -146,7 +146,7 @@ struct image_t {
             int32_t width;
             int32_t height;
         };
-        rect area;
+        rect_t area;
     };
     color32_t *data;
 };
@@ -157,9 +157,9 @@ struct image_t {
 
 ws_code_t format_from_wl_format(format_t *r_format, int32_t wl_format);
 
-ws_code_t image_create_empty(image_t *r_image, rect area);
+ws_code_t image_create_empty(image_t *r_image, rect_t area);
 
-ws_code_t image_create_from_buffer(image_t *r_image, rect area , uint8_t *buffer, format_t format);
+ws_code_t image_create_from_buffer(image_t *r_image, rect_t area , uint8_t *buffer, format_t format);
 
 ws_code_t image_clone(image_t *r_image, image_t src_image);
 

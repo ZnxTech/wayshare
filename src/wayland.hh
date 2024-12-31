@@ -40,7 +40,7 @@ struct wl_buffer_data_t {
             int32_t width;
             int32_t height;
         };
-        rect area;
+        rect_t area;
     };
     void *data = nullptr;
     int *n_ready = nullptr;
@@ -58,7 +58,7 @@ struct wl_output_data_t {
             int32_t width;
             int32_t height;
         };
-        rect area;
+        rect_t area;
     };
     int32_t transform;
     int32_t scale_factor;
@@ -93,6 +93,6 @@ ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data);
 // | screencopy functions |
 // +----------------------+
 
-ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect area, int32_t cursor);
+ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor);
 
 #endif

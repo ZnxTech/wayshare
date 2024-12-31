@@ -1,6 +1,6 @@
 #include "rect.hh"
 
-rect rect_get_intersection(rect r1, rect r2) {
+rect_t rect_get_intersection(rect_t r1, rect_t r2) {
     int x1 = fmax(r1.x, r2.x);
     int y1 = fmax(r1.y, r2.y);
     int x2 = fmin(r1.x + r1.width, r2.x + r2.width);
@@ -14,6 +14,6 @@ rect rect_get_intersection(rect r1, rect r2) {
     };
 }
 
-bool rect_is_valid(rect r) {
+bool rect_is_valid(rect_t r) {
     return (r.width > 0 && r.height > 0);
 }

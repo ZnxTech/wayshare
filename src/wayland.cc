@@ -283,7 +283,7 @@ ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data) {
     return WS_OK;
 }
 
-ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect area, int32_t cursor) {
+ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor) {
     int n_requested = 0;
     int n_ready = 0;
     std::vector<wl_buffer_data_t> buffers;
