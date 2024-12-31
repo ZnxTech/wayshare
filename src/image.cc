@@ -162,7 +162,7 @@ ws_code_t image_create_empty(image_t *r_image, rect_t area) {
     return WS_OK;
 }
 
-ws_code_t image_create_from_buffer(image_t *r_image, rect_t area , uint8_t *buffer, format_t format) {
+ws_code_t image_create_from_buffer(image_t *r_image, rect_t area, uint8_t *buffer, format_t format) {
 
     image_t image = { };
     image_create_empty(&image, area);
