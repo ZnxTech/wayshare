@@ -34,4 +34,7 @@ typedef int32_t ws_code_t;
 #define WSE_SHM_FDF        -0x0201  // posix shared memory  // failed to create the posix shm file.
 #define WSE_SHM_ALLOCF     -0x0202  // ===================  // failed to allocate the posix shm file.
 
+#define WSE_IMG_NSFORMAT   -0x0301  // wayshare raw image   // format received is not currently supported by wayshare.
+#define WSE_IMG_PARSEF     -0x0302  // ==================   // failed to parse the data buffer into an image.
+
 #endif // WS_WAYSHARE_H
