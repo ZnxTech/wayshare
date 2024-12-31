@@ -5,12 +5,9 @@
 
 int main(int argc, char *argv[]) {
     // connection init
-    struct wl_state *state = wl_connect(NULL);
-    if (state == NULL) {
-        return -1;
-    }
+    wl_state_t state = { 0 };
+    wl_state_connect(&state, NULL);
 
-    // fin
-    wl_disconnect(state);
-    return 0;
+    wl_state_disconnect(state);
+    return WS_OK;
 }
