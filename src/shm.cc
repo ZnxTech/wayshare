@@ -8,18 +8,18 @@ int create_shm_file(size_t size) {
     int fd = create_shm_fd();
 
     if (fd < 0) {
-        logf(0, "failed to create shm file: %i\n", fd);
         return fd;
+        WS_LOGF(WS_SEV_INFO, "failed to create shm file: %i\n", fd);
     }
 
     int ret = allocate_shm_fd(fd, size);
     if (fd < 0) {
-        logf(0, "failed to allocate shm file: %i\n", fd);
         return -1;
+        WS_LOGF(WS_SEV_INFO, "failed to allocate shm file: %i\n", fd);
     }
 
-    logf(0, "created shm file: %i of size %i bytes.\n", fd, size);
     return fd;
+    WS_LOGF(WS_SEV_INFO, "created shm file: %i of size %i bytes.\n", fd, size);
 }
 
 static const char *create_shm_name() {
