@@ -1,28 +1,70 @@
-#ifndef WAYLAND_H
-#define WAYLAND_H
+#ifndef WS_WAYLAND_H
+#define WS_WAYLAND_H
 
 #include <wayland-client.h>
 #include <cstring>
+#include <cstdint>
 #include <vector>
+
 #include "wlr-screencopy-unstable-v1.hh"
 #include "cosmic-screencopy-unstable-v2.hh"
+#include "xdg-output-unstable-v1.hh"
+
+#include "wayshare.hh"
+#include "shm.hh"
+#include "rect.hh"
+#include "image.hh"
 #include "logger.hh"
 
-struct wl_output_data {
+// +-----------------+
+// | wayland structs |
+// +-----------------+
+
+struct wl_buffer_data_t;
+struct wl_output_data_t;
+struct wl_state_t;
+
+struct wl_buffer_data_t {
+    // wayland objects
+    zwlr_screencopy_frame_v1 *frame = nullptr;
+    wl_buffer *buffer = nullptr;
+
+    // buffer data
+    uint32_t format;
+    uint32_t stride;
+    uint32_t size;
+    union {
+        struct {
+            int32_t x;
+            int32_t y;
+            int32_t width;
+            int32_t height;
+        };
+        rect area;
+    };
+    void *data = nullptr;
+    int *n_ready = nullptr;
+};
+
+struct wl_output_data_t {
     // wayland output object
     wl_output *output = nullptr;
 
     // output data
-    rect area;
+    union {
+        struct {
+            int32_t x;
+            int32_t y;
+            int32_t width;
+            int32_t height;
+        };
+        rect area;
+    };
     int32_t transform;
     int32_t scale_factor;
-
-    // for debugging
-    const char *name  = nullptr;
-    const char *model = nullptr;
 };
 
-struct wl_state {
+struct wl_state_t {
     // base wayland connection objects
     wl_display *display   = nullptr;
     wl_registry *registry = nullptr;
@@ -32,20 +74,25 @@ struct wl_state {
     // wayland screencopy objects
     zwlr_screencopy_manager_v1 *wlr_screencopy_manager       = nullptr;
     zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager = nullptr;
-    std::vector<wl_output_data*> outputs;
+    std::vector<wl_output_data_t> outputs;
 };
 
-bool wl_connect(wl_state *state, const char *name);
+// +-----------------------------+
+// | wayland managment functions |
+// +-----------------------------+
 
-bool wl_connect_to_fd(wl_state *state, int fd);
+ws_code_t wl_state_connect(wl_state_t *r_state, const char *name);
 
-void wl_disconnect(wl_state *state);
+ws_code_t wl_state_disconnect(wl_state_t state);
 
+ws_code_t wl_buffer_create(wl_state_t state, wl_buffer_data_t buffer_data);
 
+ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data);
 
+// +----------------------+
+// | screencopy functions |
+// +----------------------+
 
-
-
-
+ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect area, int32_t cursor);
 
 #endif
