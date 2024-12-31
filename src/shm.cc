@@ -4,22 +4,23 @@ const char *NAME_TEMP  = "/wayshare-shm-";
 const char *CHARSET    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const int   RAND_COUNT = 8;
 
-int create_shm_file(size_t size) {
-    int fd = create_shm_fd();
+ws_code_t create_shm_file(int *r_fd, size_t size) {
+    const int fd = create_shm_fd();
 
     if (fd < 0) {
-        return fd;
         WS_LOGF(WS_SEV_INFO, "failed to create shm file: %i\n", fd);
+        return WSE_SHM_FDF;
     }
 
-    int ret = allocate_shm_fd(fd, size);
-    if (fd < 0) {
-        return -1;
+    const int ret = allocate_shm_fd(fd, size);
+    if (ret < 0) {
         WS_LOGF(WS_SEV_INFO, "failed to allocate shm file: %i\n", fd);
+        return WSE_SHM_ALLOCF;
     }
 
-    return fd;
     WS_LOGF(WS_SEV_INFO, "created shm file: %i of size %i bytes.\n", fd, size);
+    *r_fd = fd;
+    return WS_OK;
 }
 
 static const char *create_shm_name() {
