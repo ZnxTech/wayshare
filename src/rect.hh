@@ -1,13 +1,14 @@
-#ifndef RECT_H
-#define RECT_H
+#ifndef WS_RECT_H
+#define WS_RECT_H
 
-#include <math.h>
+#include <cstdint>
+#include <cmath>
 
 struct rect {
-    int x = 0;
-    int y = 0;
-    int width = 0;
-    int height = 0;
+    int32_t x = 0;
+    int32_t y = 0;
+    int32_t width = 0;
+    int32_t height = 0;
 };
 
 rect rect_get_intersection(rect b1, rect b2);
