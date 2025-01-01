@@ -303,7 +303,9 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
 
         // create frame
         buffer_data.frame = zwlr_screencopy_manager_v1_capture_output_region(state.wlr_screencopy_manager,
-            cursor, output_data.output, 0, 0, buffer_data.width, buffer_data.height);
+            cursor, output_data.output,
+            buffer_data.x - output_data.x, buffer_data.y - output_data.y,
+            buffer_data.width, buffer_data.height);
         zwlr_screencopy_frame_v1_add_listener(buffer_data.frame, &wlr_frame_listener, &buffer_data);
         wl_display_dispatch(state.display);
 
