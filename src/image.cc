@@ -269,12 +269,6 @@ ws_code_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, image_
 
 ws_code_t image_layer_overwrite(image_t dest_image, image_t src_image) {
 
-    WS_LOGF(WS_SEV_INFO, "src_image stats: x:%i y:%i width:%i height:%i\n",
-        src_image.x, src_image.y, src_image.width, src_image.height);
-
-    WS_LOGF(WS_SEV_INFO, "dest_image stats: x:%i y:%i width:%i height:%i\n",
-        dest_image.x, dest_image.y, dest_image.width, dest_image.height);
-
     const rect_t intr = rect_intersect(dest_image.area, src_image.area);
     if (!rect_is_valid(intr))
         return WS_OK; // images dont intersect, nothing to do.

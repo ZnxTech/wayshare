@@ -7,18 +7,14 @@ const int   RAND_COUNT = 8;
 ws_code_t create_shm_file(int *r_fd, size_t size) {
     const int fd = create_shm_fd();
 
-    if (fd < 0) {
-        WS_LOGF(WS_SEV_INFO, "failed to create shm file: %i\n", fd);
+    if (fd < 0)
         return WSE_SHM_FDF;
-    }
 
     const int ret = allocate_shm_fd(fd, size);
-    if (ret < 0) {
-        WS_LOGF(WS_SEV_INFO, "failed to allocate shm file: %i\n", fd);
+    if (ret < 0)
         return WSE_SHM_ALLOCF;
-    }
 
-    WS_LOGF(WS_SEV_INFO, "created shm file: %i of size %i bytes.\n", fd, size);
+    WS_LOGF(WS_SEV_INFO, "created shm file of size %i bytes.\n", size);
     *r_fd = fd;
     return WS_OK;
 }

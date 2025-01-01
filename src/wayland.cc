@@ -7,7 +7,6 @@
 static void wl_output_event_geometry(void *data, wl_output *wl_output,
         int32_t x, int32_t y, int32_t width_mm, int32_t height_mm,
         int32_t subpixel, const char *make, const char *model, int32_t transform) {
-    WS_LOGF(WS_SEV_INFO, "wl_output geometry event: make:\"%s\" model:\"%s\" \n", make, model);
     wl_output_data_t *output_data = (wl_output_data_t*)data;
     output_data->x = x;
     output_data->y = y;
@@ -16,28 +15,23 @@ static void wl_output_event_geometry(void *data, wl_output *wl_output,
 
 static void wl_output_event_mode(void *data, wl_output *wl_output,
         uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
-    WS_LOGF(WS_SEV_INFO, "wl_output mode event: w:%ipx, h:%ipx, rr:%ihz\n", width, height, refresh / 1000 );
     wl_output_data_t *output_data = (wl_output_data_t*)data;
     output_data->width = width;
     output_data->height = height;
 }
 
 static void wl_output_event_done(void *data, wl_output *wl_output) {
-    WS_LOGF(WS_SEV_INFO, "wl_output done event:\n");
 }
 
 static void wl_output_event_scale(void *data, wl_output *wl_output, int32_t factor) {
-    WS_LOGF(WS_SEV_INFO, "wl_output scale event: factor:%i\n", factor);
     wl_output_data_t *output_data = (wl_output_data_t*)data;
     output_data->scale_factor = factor;
 }
 
 static void wl_output_event_name(void *data, wl_output *wl_output, const char *name) {
-    WS_LOGF(WS_SEV_INFO, "wl_output name event: name:%s\n", name);
 }
 
 static void wl_output_event_description(void *data, wl_output *wl_output, const char *description) {
-    WS_LOGF(WS_SEV_INFO, "wl_output description event: description:%s\n", description);
 }
 
 static const wl_output_listener output_listener {
@@ -54,31 +48,24 @@ static const wl_output_listener output_listener {
 // +------------------------+
 
 static void xdg_output_event_logical_position(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t x, int32_t y) {
-    WS_LOGF(WS_SEV_INFO, "xdg_output logical_position event: x:%i y:%i\n", x, y);
     wl_output_data_t *output_data_t = (wl_output_data_t*)data;
     output_data_t->x = x;
     output_data_t->y = y;
 }
 
 static void xdg_output_event_logical_size(void *data, zxdg_output_v1 *zxdg_output_v1, int32_t width, int32_t height) {
-    WS_LOGF(WS_SEV_INFO, "xdg_output logical_size event:\n");
     wl_output_data_t *output_data_t = (wl_output_data_t*)data;
     output_data_t->width = width;
     output_data_t->height = height;
 }
 
 static void xdg_output_event_done(void *data, zxdg_output_v1 *zxdg_output_v1) {
-    WS_LOGF(WS_SEV_INFO, "xdg_output done event:\n");
-
 }
 
 static void xdg_output_event_name(void *data, zxdg_output_v1 *zxdg_output_v1, const char *name) {
-    WS_LOGF(WS_SEV_INFO, "xdg_output name event:\n");
-
 }
 
 static void xdg_output_event_description(void *data, zxdg_output_v1 *zxdg_output_v1, const char *description) {
-    WS_LOGF(WS_SEV_INFO, "xdg_output description event:\n");
 }
 
 static const zxdg_output_v1_listener xdg_output_listener = {
@@ -101,7 +88,6 @@ static void wlr_frame_event_buffer(void *data, zwlr_screencopy_frame_v1 *zwlr_sc
     buffer_data->format = format;
     buffer_data->stride = stride;
     buffer_data->size = height * stride;
-    WS_LOGF(WS_SEV_INFO, "stride: %i\n", stride);
 }
 
 static void wlr_frame_event_flags(void *data, zwlr_screencopy_frame_v1 *zwlr_screencopy_frame_v1, uint32_t flags) {
@@ -112,11 +98,9 @@ static void wlr_frame_event_ready(void *data, zwlr_screencopy_frame_v1 *zwlr_scr
         uint32_t tv_sec_hi, uint32_t tv_sec_lo, uint32_t tv_nsec) {
     wl_buffer_data_t *buffer_data = (wl_buffer_data_t*)data;
     (*buffer_data->n_ready)++;
-    WS_LOGF(WS_SEV_INFO, "wlr_frame: copy ready.\n");
 }
 
 static void wlr_frame_event_failed(void *data, zwlr_screencopy_frame_v1 *zwlr_screencopy_frame_v1) {
-    WS_LOGF(WS_SEV_WARN, "wlr_frame: copy failed.\n");
 }
 
 static void wlr_frame_event_damage(void *data, zwlr_screencopy_frame_v1 *zwlr_screencopy_frame_v1,
@@ -128,7 +112,6 @@ static void wlr_frame_event_linux_dmabuf(void *data, zwlr_screencopy_frame_v1 *z
 }
 
 static void wlr_frame_event_buffer_done(void *data, zwlr_screencopy_frame_v1 *zwlr_screencopy_frame_v1) {
-    WS_LOGF(WS_SEV_INFO, "wlr_frame: buffer done.\n");
 }
 
 static const zwlr_screencopy_frame_v1_listener wlr_frame_listener {
@@ -147,24 +130,23 @@ static const zwlr_screencopy_frame_v1_listener wlr_frame_listener {
 
 static void wl_registry_event_global(void *data, wl_registry *registry,
         uint32_t name, const char *interface, uint32_t version) {
-    WS_LOGF(WS_SEV_INFO, "wl_registry global event: name:%i, v:%i, interface:%s\n", name, version, interface);
 
     if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {
-        WS_LOGF(WS_SEV_INFO, "wlroots screencopy found.\n");
+        WS_LOGF(WS_SEV_INFO, "wlr_screencopy_manager found.\n");
         wl_state_t *state = (wl_state_t*)data;
         state->wlr_screencopy_manager = (zwlr_screencopy_manager_v1*)wl_registry_bind(
             state->registry, name, &zwlr_screencopy_manager_v1_interface, version);
     }
 
     if (strcmp(interface, zcosmic_screencopy_manager_v2_interface.name) == 0) {
-        WS_LOGF(WS_SEV_INFO, "cosmic screencopy found.\n");
+        WS_LOGF(WS_SEV_INFO, "cosmic_screencopy_manager found.\n");
         wl_state_t *state = (wl_state_t*)data;
         state->cosmic_screencopy_manager = (zcosmic_screencopy_manager_v2*)wl_registry_bind(
             state->registry, name, &zcosmic_screencopy_manager_v2_interface, version);
     }
 
     if (strcmp(interface, wl_output_interface.name) == 0) {
-        WS_LOGF(WS_SEV_INFO, "wayland output found.\n");
+        WS_LOGF(WS_SEV_INFO, "wl_output found.\n");
         wl_state_t *state = (wl_state_t*)data;
         wl_output_data_t output_data = { 0 };
         output_data.output = (wl_output*)wl_registry_bind(state->registry, name, &wl_output_interface, version);
@@ -174,14 +156,14 @@ static void wl_registry_event_global(void *data, wl_registry *registry,
     }
 
     if (strcmp(interface, wl_shm_interface.name) == 0) {
-        WS_LOGF(WS_SEV_INFO, "wayland shm found.\n");
+        WS_LOGF(WS_SEV_INFO, "wl_shm found.\n");
         wl_state_t *state = (wl_state_t*)data;
         state->shm = (wl_shm*)wl_registry_bind(state->registry, name, &wl_shm_interface, version);
         wl_display_roundtrip(state->display);
     }
 
     if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
-        WS_LOGF(WS_SEV_INFO, "xdg output_manager found.\n");
+        WS_LOGF(WS_SEV_INFO, "xdg_output_manager found.\n");
         wl_state_t *state = (wl_state_t*)data;
         state->output_manager = (zxdg_output_manager_v1*)wl_registry_bind(
             state->registry, name, &zxdg_output_manager_v1_interface, version);
@@ -189,7 +171,6 @@ static void wl_registry_event_global(void *data, wl_registry *registry,
 }
 
 static void wl_registry_event_global_remove(void *data, wl_registry *registry, uint32_t name) {
-    WS_LOGF(WS_SEV_INFO, "wl_registry global_remove event: name:%i\n", name);
 }
 
 static const wl_registry_listener registry_listener {
@@ -251,13 +232,13 @@ ws_code_t wl_buffer_create(wl_state_t state, wl_buffer_data_t *buffer_data) {
     int fd;
     ws_code_t code = create_shm_file(&fd, buffer_data->size);
     if (code < 0) {
-        WS_LOGF(WS_SEV_WARN, "wlr_screencopy: shm_file failed.\n");
+        WS_LOGF(WS_SEV_WARN, "shm file failed.\n");
         return WSE_WL_FDF;
     }
 
     void *data = mmap(NULL, buffer_data->size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (data == MAP_FAILED) {
-        WS_LOGF(WS_SEV_WARN, "wlr_screencopy: shm mmap failed. %i\n", fd);
+        WS_LOGF(WS_SEV_WARN, "shm mmap failed.\n");
         close(fd);
         return WSE_WL_MMAPF;
     }
@@ -284,6 +265,7 @@ ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data) {
 }
 
 ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor) {
+    WS_LOGF(WS_SEV_INFO, "requesting wlr screencopy image.\n");
     int n_requested = 0;
     int n_ready = 0;
     std::vector<wl_buffer_data_t> buffers;
@@ -292,11 +274,6 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
         buffer_data.n_ready = &n_ready;
         buffer_data.transform = output_data.transform;
         buffer_data.area = rect_intersect(area, output_data.area);
-
-        WS_LOGF(WS_SEV_INFO, "output stats _wlr: x:%i y:%i width:%i height:%i\n",
-            output_data.x, output_data.y, output_data.width, output_data.height);
-        WS_LOGF(WS_SEV_INFO, "intr stats: x:%i y:%i width:%i height:%i\n",
-            buffer_data.area.x, buffer_data.area.y, buffer_data.area.width, buffer_data.area.height);
 
         if (!rect_is_valid(buffer_data.area))
             continue;
@@ -316,13 +293,12 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
 
         // copy frame
         zwlr_screencopy_frame_v1_copy(buffer_data.frame, buffer_data.buffer);
-        WS_LOGF(WS_SEV_INFO, "wlr_screencopy: copying frame.\n");
         wl_display_dispatch(state.display);
         buffers.push_back(buffer_data);
         n_requested++;
     }
 
-    WS_LOGF(WS_SEV_INFO, "wlr_screencopy: requested %i slice/s.\n", n_requested);
+    WS_LOGF(WS_SEV_INFO, "requested %i screencopy slices.\n", n_requested);
     int n_dispatched = 0;
     while (n_ready != n_requested && n_dispatched != -1) {
         n_dispatched = wl_display_roundtrip(state.display);
@@ -331,13 +307,9 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
     image_t image_main = { };
     image_create_empty(&image_main, area);
 
-    WS_LOGF(WS_SEV_INFO, "wlr_screencopy: creating image.\n");
     for (wl_buffer_data_t &buffer_data : buffers) {
         image_t image_part = { };
         format_t image_format = { };
-
-        WS_LOGF(WS_SEV_INFO, "buffer stats: x:%i y:%i width:%i height:%i\n",
-            buffer_data.x, buffer_data.y, buffer_data.width, buffer_data.height);
 
         ws_code_t code = format_from_wl_format(&image_format, buffer_data.format);
         if (code < 0)
@@ -352,7 +324,8 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
         image_delete(image_part);
         wl_buffer_delete(buffer_data);
     }
-
+    
+    WS_LOGF(WS_SEV_INFO, "screencopy image complete.\n");
     *r_image = image_main;
     return WS_OK;
 }
