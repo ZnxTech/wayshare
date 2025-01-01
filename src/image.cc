@@ -339,3 +339,75 @@ ws_code_t image_layer_overlay(image_t dest_image, image_t src_image) {
 
     return WS_OK;
 }
+
+ws_code_t image_vaxis_flip(image_t image) {
+    color32_t temp_pixel;
+
+    for (uint32_t x = 0; x < image.width / 2; x++) {
+        for (uint32_t y = 0; y < image.height; y++) {
+            temp_pixel = image.data[x + y * image.width];
+            image.data[x + y * image.width] = image.data[image.width - x - 1 + y * image.width];
+            image.data[image.width - x - 1 + y * image.width] = temp_pixel;
+        }
+    }
+
+    return WS_OK;
+}
+
+ws_code_t image_haxis_flip(image_t image) {
+    color32_t temp_pixel;
+
+    for (uint32_t x = 0; x < image.width; x++) {
+        for (uint32_t y = 0; y < image.height / 2; y++) {
+            temp_pixel = image.data[x + y * image.width];
+            image.data[x + y * image.width] = image.data[x + (image.height - y - 1) * image.width];
+            image.data[x + (image.height - y - 1) * image.width] = temp_pixel;
+        }
+    }
+
+    return WS_OK;
+}
+
+// O(n^2) memory algorithms, might improve them later.
+
+ws_code_t image_transpose(image_t *image) {
+    color32_t *trans_buffer = (color32_t*)calloc(image->width * image->height, sizeof(color32_t));
+
+    for (uint32_t x = 0; x < image->width; x++) {
+        for (uint32_t y = 0; y < image->height; y++) {
+            trans_buffer[y + x * image->height] = image->data[x + y * image->width];
+        }
+    }
+
+    free(image->data);
+    image->data = trans_buffer;
+    image->area = rect_transpose(image->area);
+
+    return WS_OK;
+}
+
+ws_code_t image_rotate(image_t *image, uint8_t rotation) {
+    rotation = rotation % 4;
+
+    switch(rotation) {
+    case 1:
+        image_transpose(image);
+        image_vaxis_flip(*image);
+        break;
+
+    case 2:
+        image_vaxis_flip(*image);
+        image_haxis_flip(*image);
+        break;
+
+    case 3:
+        image_transpose(image);
+        image_haxis_flip(*image);
+        break;
+
+    default:
+        break;
+    }
+
+    return WS_OK;
+}
