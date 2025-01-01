@@ -290,7 +290,7 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
     for (wl_output_data_t &output_data : state.outputs) {
         wl_buffer_data_t buffer_data = { 0 };
         buffer_data.n_ready = &n_ready;
-        buffer_data.area = rect_get_intersection(area, output_data.area);
+        buffer_data.area = rect_intersect(area, output_data.area);
 
         WS_LOGF(WS_SEV_INFO, "output stats _wlr: x:%i y:%i width:%i height:%i\n",
             output_data.x, output_data.y, output_data.width, output_data.height);

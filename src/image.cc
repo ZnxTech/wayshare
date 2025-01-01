@@ -275,7 +275,7 @@ ws_code_t image_layer_overwrite(image_t dest_image, image_t src_image) {
     WS_LOGF(WS_SEV_INFO, "dest_image stats: x:%i y:%i width:%i height:%i\n",
         dest_image.x, dest_image.y, dest_image.width, dest_image.height);
 
-    const rect_t intr = rect_get_intersection(dest_image.area, src_image.area);
+    const rect_t intr = rect_intersect(dest_image.area, src_image.area);
     if (!rect_is_valid(intr))
         return WS_OK; // images dont intersect, nothing to do.
 
@@ -294,7 +294,7 @@ ws_code_t image_layer_overwrite(image_t dest_image, image_t src_image) {
 }
 
 ws_code_t image_layer_overlay(image_t dest_image, image_t src_image) {
-    const rect_t intr = rect_get_intersection(dest_image.area, src_image.area);
+    const rect_t intr = rect_intersect(dest_image.area, src_image.area);
     if (!rect_is_valid(intr))
         return WS_OK; // images dont intersect, nothing to do.
 

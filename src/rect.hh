@@ -11,7 +11,9 @@ struct rect_t {
     int32_t height = 0;
 };
 
- rect_t rect_get_intersection(rect_t r1, rect_t r2);
+rect_t rect_intersect(rect_t r1, rect_t r2);
+
+rect_t rect_transpose(rect_t r);
 
 bool rect_is_valid(rect_t r);
 
