@@ -30,9 +30,10 @@ struct wl_buffer_data_t {
     wl_buffer *buffer = nullptr;
 
     // buffer data
-    uint32_t format;
-    uint32_t stride;
-    uint32_t size;
+    int32_t format;
+    int32_t stride;
+    int32_t size;
+    int32_t transform;
     union {
         struct {
             int32_t x;

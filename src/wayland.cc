@@ -290,6 +290,7 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
     for (wl_output_data_t &output_data : state.outputs) {
         wl_buffer_data_t buffer_data = { 0 };
         buffer_data.n_ready = &n_ready;
+        buffer_data.transform = output_data.transform;
         buffer_data.area = rect_intersect(area, output_data.area);
 
         WS_LOGF(WS_SEV_INFO, "output stats _wlr: x:%i y:%i width:%i height:%i\n",
@@ -341,6 +342,10 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
             continue;
 
         image_create_from_buffer(&image_part, buffer_data.area, (uint8_t*)buffer_data.data, image_format);
+        image_rotate(&image_part, buffer_data.transform & 0x03);
+        if (buffer_data.transform & 0x04)
+            image_vaxis_flip(image_part);
+
         image_layer_overlay(image_main, image_part);
         image_delete(image_part);
         wl_buffer_delete(buffer_data);
