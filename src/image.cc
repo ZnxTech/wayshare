@@ -1,6 +1,6 @@
 #include "image.hh"
 
-ws_code_t format_from_wl_format(format_t *r_format, int32_t wl_format) {
+ecode_t format_from_wl_format(format_t *r_format, int32_t wl_format) {
 
     // NOTE:
     // =====
@@ -152,7 +152,7 @@ ws_code_t format_from_wl_format(format_t *r_format, int32_t wl_format) {
     return WS_OK;
 }
 
-ws_code_t image_create_empty(image_t *r_image, rect_t area) {
+ecode_t image_create_empty(image_t *r_image, rect_t area) {
     image_t image = { };
     image.area = area;
 
@@ -162,7 +162,7 @@ ws_code_t image_create_empty(image_t *r_image, rect_t area) {
     return WS_OK;
 }
 
-ws_code_t image_create_from_buffer(image_t *r_image, rect_t area, uint8_t *buffer, format_t format) {
+ecode_t image_create_from_buffer(image_t *r_image, rect_t area, uint8_t *buffer, format_t format) {
 
     image_t image = { };
     image_create_empty(&image, area);
@@ -228,12 +228,12 @@ ws_code_t image_create_from_buffer(image_t *r_image, rect_t area, uint8_t *buffe
 }
 
 // middleman function for free(), used for destructor like purposes if needed.
-ws_code_t image_delete(image_t image) {
+ecode_t image_delete(image_t image) {
     free(image.data);
     return WS_OK;
 }
 
-ws_code_t image_clone(image_t *r_image, image_t src_image) {
+ecode_t image_clone(image_t *r_image, image_t src_image) {
     image_t new_image = { };
 
     image_create_empty(&new_image, src_image.area);
@@ -243,7 +243,7 @@ ws_code_t image_clone(image_t *r_image, image_t src_image) {
     return WS_OK;
 }
 
-ws_code_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, image_t image) {
+ecode_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, image_t image) {
 
     const uint8_t buffer_subpixel_count = color_type + 1;
     uint8_t *buffer = (uint8_t*)calloc(buffer_subpixel_count * image.width * image.height, sizeof(uint8_t));
@@ -267,7 +267,7 @@ ws_code_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, image_
     return WS_OK;
 }
 
-ws_code_t image_layer_overwrite(image_t dest_image, image_t src_image) {
+ecode_t image_layer_overwrite(image_t dest_image, image_t src_image) {
 
     const rect_t intr = rect_intersect(dest_image.area, src_image.area);
     if (!rect_is_valid(intr))
@@ -287,7 +287,7 @@ ws_code_t image_layer_overwrite(image_t dest_image, image_t src_image) {
     return WS_OK;
 }
 
-ws_code_t image_layer_overlay(image_t dest_image, image_t src_image) {
+ecode_t image_layer_overlay(image_t dest_image, image_t src_image) {
     const rect_t intr = rect_intersect(dest_image.area, src_image.area);
     if (!rect_is_valid(intr))
         return WS_OK; // images dont intersect, nothing to do.
@@ -334,7 +334,7 @@ ws_code_t image_layer_overlay(image_t dest_image, image_t src_image) {
     return WS_OK;
 }
 
-ws_code_t image_vaxis_flip(image_t image) {
+ecode_t image_vaxis_flip(image_t image) {
     color32_t temp_pixel;
 
     for (uint32_t x = 0; x < image.width / 2; x++) {
@@ -348,7 +348,7 @@ ws_code_t image_vaxis_flip(image_t image) {
     return WS_OK;
 }
 
-ws_code_t image_haxis_flip(image_t image) {
+ecode_t image_haxis_flip(image_t image) {
     color32_t temp_pixel;
 
     for (uint32_t x = 0; x < image.width; x++) {
@@ -364,7 +364,7 @@ ws_code_t image_haxis_flip(image_t image) {
 
 // O(n^2) memory algorithms, might improve them later.
 
-ws_code_t image_transpose(image_t *image) {
+ecode_t image_transpose(image_t *image) {
     color32_t *trans_buffer = (color32_t*)calloc(image->width * image->height, sizeof(color32_t));
 
     for (uint32_t x = 0; x < image->width; x++) {
@@ -380,7 +380,7 @@ ws_code_t image_transpose(image_t *image) {
     return WS_OK;
 }
 
-ws_code_t image_rotate(image_t *image, uint8_t rotation) {
+ecode_t image_rotate(image_t *image, uint8_t rotation) {
     rotation = rotation % 4;
 
     switch(rotation) {

@@ -17,7 +17,7 @@
 // | public shm functions |
 // +----------------------+
 
-ws_code_t create_shm_file(int *r_fd, size_t size);
+ecode_t create_shm_file(int *r_fd, size_t size);
 
 // +-----------------------+
 // | private shm functions |

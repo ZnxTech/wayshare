@@ -182,7 +182,7 @@ static const wl_registry_listener registry_listener {
 // | wayland managment functions |
 // +-----------------------------+
 
-ws_code_t wl_state_connect(wl_state_t *r_state, const char *name) {
+ecode_t wl_state_connect(wl_state_t *r_state, const char *name) {
     r_state->display = wl_display_connect(name);
     if (r_state->display == NULL) {
         WS_LOGF(WS_SEV_ERR, "wayland display not found.\n");
@@ -219,7 +219,7 @@ ws_code_t wl_state_connect(wl_state_t *r_state, const char *name) {
     return WS_OK;
 }
 
-ws_code_t wl_state_disconnect(wl_state_t state) {
+ecode_t wl_state_disconnect(wl_state_t state) {
     if (state.registry != nullptr)
         wl_registry_destroy(state.registry);
     if (state.display != nullptr)
@@ -227,11 +227,11 @@ ws_code_t wl_state_disconnect(wl_state_t state) {
     return WS_OK;
 }
 
-ws_code_t wl_buffer_create(wl_state_t state, wl_buffer_data_t *buffer_data) {
+ecode_t wl_buffer_create(wl_state_t state, wl_buffer_data_t *buffer_data) {
 
     int fd;
-    ws_code_t code = create_shm_file(&fd, buffer_data->size);
-    if (code < 0) {
+    ecode_t code = create_shm_file(&fd, buffer_data->size);
+    if (!code) {
         WS_LOGF(WS_SEV_WARN, "shm file failed.\n");
         return WSE_WL_FDF;
     }
@@ -254,7 +254,7 @@ ws_code_t wl_buffer_create(wl_state_t state, wl_buffer_data_t *buffer_data) {
     return WS_OK;
 }
 
-ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data) {
+ecode_t wl_buffer_delete(wl_buffer_data_t buffer_data) {
     if (buffer_data.frame != nullptr)
         zwlr_screencopy_frame_v1_destroy(buffer_data.frame);
     if (buffer_data.buffer != nullptr)
@@ -264,7 +264,7 @@ ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data) {
     return WS_OK;
 }
 
-ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor) {
+ecode_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor) {
     WS_LOGF(WS_SEV_INFO, "requesting wlr screencopy image.\n");
     int n_requested = 0;
     int n_ready = 0;
@@ -287,8 +287,8 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
         wl_display_dispatch(state.display);
 
         // allocate shm buffer
-        const ws_code_t code = wl_buffer_create(state, &buffer_data);
-        if (code < 0)
+        const ecode_t code = wl_buffer_create(state, &buffer_data);
+        if (!code)
             return WSE_WL_BUFFERF;
 
         // copy frame
@@ -311,8 +311,8 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
         image_t image_part = { };
         format_t image_format = { };
 
-        ws_code_t code = format_from_wl_format(&image_format, buffer_data.format);
-        if (code < 0)
+        ecode_t code = format_from_wl_format(&image_format, buffer_data.format);
+        if (!code)
             continue;
 
         image_create_from_buffer(&image_part, buffer_data.area, (uint8_t*)buffer_data.data, image_format);
@@ -324,7 +324,7 @@ ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, 
         image_delete(image_part);
         wl_buffer_delete(buffer_data);
     }
-    
+
     WS_LOGF(WS_SEV_INFO, "screencopy image complete.\n");
     *r_image = image_main;
     return WS_OK;

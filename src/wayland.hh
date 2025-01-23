@@ -82,18 +82,18 @@ struct wl_state_t {
 // | wayland managment functions |
 // +-----------------------------+
 
-ws_code_t wl_state_connect(wl_state_t *r_state, const char *name);
+ecode_t wl_state_connect(wl_state_t *r_state, const char *name);
 
-ws_code_t wl_state_disconnect(wl_state_t state);
+ecode_t wl_state_disconnect(wl_state_t state);
 
-ws_code_t wl_buffer_create(wl_state_t state, wl_buffer_data_t buffer_data);
+ecode_t wl_buffer_create(wl_state_t state, wl_buffer_data_t buffer_data);
 
-ws_code_t wl_buffer_delete(wl_buffer_data_t buffer_data);
+ecode_t wl_buffer_delete(wl_buffer_data_t buffer_data);
 
 // +----------------------+
 // | screencopy functions |
 // +----------------------+
 
-ws_code_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor);
+ecode_t image_wlr_screencopy(image_t *r_image, wl_state_t state, rect_t area, int32_t cursor);
 
 #endif

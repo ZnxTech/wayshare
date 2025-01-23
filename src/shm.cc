@@ -4,7 +4,7 @@ const char *NAME_TEMP  = "/wayshare-shm-";
 const char *CHARSET    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const int   RAND_COUNT = 8;
 
-ws_code_t create_shm_file(int *r_fd, size_t size) {
+ecode_t create_shm_file(int *r_fd, size_t size) {
     const int fd = create_shm_fd();
 
     if (fd < 0)
