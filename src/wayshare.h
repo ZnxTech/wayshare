@@ -1,7 +1,7 @@
 #ifndef WS_WAYSHARE_H
 #define WS_WAYSHARE_H
 
-#include <cstdint>
+#include <stdint.h>
 
 // +-----------------------+
 // | wayshare return codes |

@@ -1,4 +1,4 @@
-#include "image.hh"
+#include "image.h"
 
 ecode_t format_from_wl_format(format_t *r_format, int32_t wl_format) {
 
@@ -269,35 +269,35 @@ ecode_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, image_t 
 
 ecode_t image_layer_overwrite(image_t dest_image, image_t src_image) {
 
-    const rect_t intr = rect_intersect(dest_image.area, src_image.area);
-    if (!rect_is_valid(intr))
+    const rect_t inter = rect_inter(dest_image.area, src_image.area);
+    if (!rect_is_valid(inter))
         return WS_OK; // images dont intersect, nothing to do.
 
-    const int64_t dest_0 = (intr.y - dest_image.y) * dest_image.width + intr.x - dest_image.x;
-    const int64_t src_0  = (intr.y - src_image.y)  * src_image.width  + intr.x - src_image.x;
+    const int64_t dest_0 = (inter.y - dest_image.y) * dest_image.width + inter.x - dest_image.x;
+    const int64_t src_0  = (inter.y - src_image.y)  * src_image.width  + inter.x - src_image.x;
 
-    for (uint32_t dy = 0; dy < intr.height; dy++) {
-        // "x"_color refers to the color pointer at the start of each horizontal line in the intr
+    for (uint32_t dy = 0; dy < inter.height; dy++) {
+        // "x"_color refers to the color pointer at the start of each horizontal line in the inter
         // from the perspective of the "x"'s image.
         color32_t *dest_color = dest_image.data + dest_0 + dy * dest_image.width;
         color32_t *src_color  = src_image.data  + src_0  + dy * src_image.width;
-        memcpy(dest_color, src_color, intr.width * sizeof(color32_t));
+        memcpy(dest_color, src_color, inter.width * sizeof(color32_t));
     }
 
     return WS_OK;
 }
 
 ecode_t image_layer_overlay(image_t dest_image, image_t src_image) {
-    const rect_t intr = rect_intersect(dest_image.area, src_image.area);
-    if (!rect_is_valid(intr))
+    const rect_t inter = rect_inter(dest_image.area, src_image.area);
+    if (!rect_is_valid(inter))
         return WS_OK; // images dont intersect, nothing to do.
 
-    const int64_t dest_0 = (intr.y - dest_image.y) * dest_image.width + intr.x - dest_image.x;
-    const int64_t src_0  = (intr.y - src_image.y)  * src_image.width  + intr.x - src_image.x;
+    const int64_t dest_0 = (inter.y - dest_image.y) * dest_image.width + inter.x - dest_image.x;
+    const int64_t src_0  = (inter.y - src_image.y)  * src_image.width  + inter.x - src_image.x;
 
-    for (uint32_t dy = 0; dy < intr.height; dy++) {
-        for (uint32_t dx = 0; dx < intr.width; dx++) {
-            // "x"_color refers to the color32 pointer at the point (dx,dy) in the intr
+    for (uint32_t dy = 0; dy < inter.height; dy++) {
+        for (uint32_t dx = 0; dx < inter.width; dx++) {
+            // "x"_color refers to the color32 pointer at the point (dx,dy) in the inter
             // from the perspective of the "x"'s image.
             color32_t *dest_color = dest_image.data + dest_0 + dx + dy * dest_image.width;
             color32_t *src_color  = src_image.data  + src_0  + dx + dy * src_image.width;
@@ -375,7 +375,7 @@ ecode_t image_transpose(image_t *image) {
 
     free(image->data);
     image->data = trans_buffer;
-    image->area = rect_transpose(image->area);
+    image->area = rect_trans(image->area);
 
     return WS_OK;
 }

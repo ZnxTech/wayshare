@@ -1,10 +1,10 @@
 #ifndef WS_LOGGER_H
 #define WS_LOGGER_H
 
-#include <cstdio>
-#include <cstdarg>
-#include <cstring>
-#include <cstdint>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdint.h>
 
 #define WS_SEV_INFO 0
 #define WS_SEV_WARN 1

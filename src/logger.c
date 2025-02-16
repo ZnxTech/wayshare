@@ -1,4 +1,4 @@
-#include "logger.hh"
+#include "logger.h"
 
 void ws_logf(int severity, const char* format, const char *fname, int fline, ...) {
     va_list args;
