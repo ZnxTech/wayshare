@@ -37,4 +37,12 @@ typedef int32_t ecode_t;
 #define WSE_IMG_NSFORMAT        -0x0200  // wayshare raw image  // format received is not currently supported by wayshare.
 #define WSE_IMG_PARSEF          -0x0201  // ==================  // failed to parse the data buffer into an image.
 
+#define WSE_CONFIG_NHOME        -0x0500  // config file         // no standard unix home directory found.
+#define WSE_CONFIG_NCONFIG_DIR  -0x0501  // ===========         // no standard xdg config directory found.
+#define WSE_CONFIG_NCONFIG_FILE -0x0502                         // no json config file at the wayshare config directory.
+#define WSE_CONFIG_JSON_PARSEF  -0x0503                         // the json config file failed to parse.
+#define WSE_CONFIG_NJSON_OBJECT -0x0504                         // missing object inside the json config file.
+#define WSE_CONFIG_NVAR_VALUE   -0x0505
+#define WSE_CONFIG_NVAR_CLOSE   -0x0506
+
 #endif // WS_WAYSHARE_H
