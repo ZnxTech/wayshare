@@ -37,6 +37,17 @@ typedef int32_t ecode_t;
 #define WSE_IMG_NSFORMAT        -0x0200  // wayshare raw image  // format received is not currently supported by wayshare.
 #define WSE_IMG_PARSEF          -0x0201  // ==================  // failed to parse the data buffer into an image.
 
+#define WSE_POST_CURLF          -0x0400  // post | libcurl
+#define WSE_POST_NUPLOADER      -0x0401  // ==============
+#define WSE_POST_NSETTING       -0x0402
+#define WSE_POST_REQUESTF       -0x0403
+#define WSE_POST_RESPONSEF      -0x0404
+#define WSE_POST_CURLF          -0x0400  // post | libcurl      // curl failed to init.
+#define WSE_POST_NUPLOADER      -0x0401  // ==============      // uploader not found.
+#define WSE_POST_NSETTING       -0x0402                         // missing critical uploader setting.
+#define WSE_POST_REQUESTF       -0x0403                         // curl request failed.
+#define WSE_POST_RESPONSEF      -0x0404                         // curl request resulted in an error/invalid respose.
+
 #define WSE_CONFIG_NHOME        -0x0500  // config file         // no standard unix home directory found.
 #define WSE_CONFIG_NCONFIG_DIR  -0x0501  // ===========         // no standard xdg config directory found.
 #define WSE_CONFIG_NCONFIG_FILE -0x0502                         // no json config file at the wayshare config directory.
