@@ -21,6 +21,7 @@ typedef int32_t ecode_t;
 
 // wayshare errors:                      // category:           // description:
 // ================                      // =========           // ============
+
 #define WSE_WL_NDISPLAY         -0x0000  // wayland             // no display found.
 #define WSE_WL_NREGISTRY        -0x0001  // =======             // no registry found.
 #define WSE_WL_NOUTPUT          -0x0002                         // no outputs were found.
