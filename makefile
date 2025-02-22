@@ -19,6 +19,12 @@ c_libs := -l m -l wayland-client -l curl -l json-c -l png
 
 all: ./build/bin/wayshare ./build/bin/wayshare-debug
 
+format:
+	@for f in $(c_src) $(c_head); do 				\
+        indent $$f -o $$f -linux 					\
+		-l100 -di0 -i4 -ts4 -il0 -c32 -cd32 -cp32;	\
+    done
+
 # code linking
 ./build/bin/wayshare: $(c_obj) $(wl_obj)
 	@mkdir ./build/bin -p
