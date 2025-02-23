@@ -22,18 +22,18 @@
 // rectangle coords:
 // =================
 
-typedef struct rect_s {
-    int32_t x;
-    int32_t y;
-    int32_t width;
-    int32_t height;
-} rect_t;
+struct rect {
+	int32_t x;
+	int32_t y;
+	int32_t width;
+	int32_t height;
+};
 
-rect_t rect_inter(rect_t rect_1, rect_t rect_2);
+struct rect rect_inter(struct rect rect_1, struct rect rect_2);
 
-rect_t rect_trans(rect_t rect);
+struct rect rect_trans(struct rect rect);
 
-bool rect_is_valid(rect_t rect);
+bool rect_is_valid(struct rect rect);
 
 // posix/unix/linux:
 // =================
@@ -49,28 +49,28 @@ ecode_t get_home_path(const char **r_home_dir_path);
 // dynamic array:
 // ==============
 
-typedef struct darray_s {
-    void *data;     // the array pointer.
-    size_t size;    // the byte size of each element in the array.
-    size_t count;   // the amount of elements that data currently has, stack only.
-    size_t reserve; // the amount of elements that data can store.
-} darray_t;
+struct darray {
+	void *data;				   // the array pointer.
+	size_t size;			   // the byte size of each element in the array.
+	size_t count;			   // the amount of elements that data currently has, stack only.
+	size_t reserve;			   // the amount of elements that data can store.
+};
 
-darray_t *darray_init(size_t _size, size_t _reserve);
+struct darray *darray_init(size_t _size, size_t _reserve);
 
-void darray_free(darray_t *_array);
+void darray_free(struct darray *_array);
 
-void darray_append(darray_t *_array, const void *_elem);
+void darray_append(struct darray *_array, const void *_elem);
 
-void darray_append_array(darray_t *_array, const void *_elems, size_t _count);
+void darray_append_array(struct darray *_array, const void *_elems, size_t _count);
 
-void *darray_pop(darray_t *_array);
+void *darray_pop(struct darray *_array);
 
-void darray_reserve(darray_t *_array, size_t _reserve);
+void darray_reserve(struct darray *_array, size_t _reserve);
 
-void *darray_get(darray_t *_array, size_t _pos);
+void *darray_get(struct darray *_array, size_t _pos);
 
-void darray_set(darray_t *_array, size_t _pos, const void *_elem);
+void darray_set(struct darray *_array, size_t _pos, const void *_elem);
 
 #define darray_foreach(_array, _index, _elem)   \
     size_t _index; void *_elem;                 \
@@ -83,29 +83,29 @@ void darray_set(darray_t *_array, size_t _pos, const void *_elem);
 // doubley linked list:
 // ====================
 
-typedef struct dllist_s {
-    void *data;     // the contained data.
-    struct dllist_s *prev; // the prev node.
-    struct dllist_s *next; // the next node.
-} dllist_t;
+struct dllist {
+	void *data;				   // the contained data.
+	struct dllist *prev;	   // the prev node.
+	struct dllist *next;	   // the next node.
+};
 
-dllist_t *dllist_init(void *_elem);
+struct dllist *dllist_init(void *_elem);
 
-dllist_t *dllist_append(dllist_t *_head, void *_elem);
+struct dllist *dllist_append(struct dllist *_head, void *_elem);
 
-void *dllist_pop(dllist_t *_head);
+void *dllist_pop(struct dllist *_head);
 
-void dllist_pop_free(dllist_t *_head);
+void dllist_pop_free(struct dllist *_head);
 
-void *dllist_get(dllist_t *_head, size_t _index);
+void *dllist_get(struct dllist *_head, size_t _index);
 
-void dllist_set(dllist_t *_head, size_t _index, void *_elem);
+void dllist_set(struct dllist *_head, size_t _index, void *_elem);
 
-void dllist_set_free(dllist_t *_head, size_t _index, void *_elem);
+void dllist_set_free(struct dllist *_head, size_t _index, void *_elem);
 
 #define dllist_foreach(_head, _index, _elem)    \
     sllist_t *_head_ref = _head;                \
     size_t _index; void *_elem;                 \
     for (_index = 0; (_head_ref != _head->next) ? _elem = _head->data, _head = _head->next : 0; _index++)
 
-#endif // WS_UTILS_H
+#endif						   // WS_UTILS_H
