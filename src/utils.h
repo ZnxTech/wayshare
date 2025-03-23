@@ -72,13 +72,17 @@ void *darray_get(struct darray *_array, size_t _pos);
 
 void darray_set(struct darray *_array, size_t _pos, const void *_elem);
 
-#define darray_foreach(_array, _index, _elem)   \
-    size_t _index; void *_elem;                 \
-    for (_index = 0; (_index < _array->count) ? _elem = darray_get(_array, _index) : 0; _index++)
+#define darray_foreach(_array, _elem_p)								\
+	for (size_t _index = 0;											\
+		(_index < _array->count)									\
+			? _elem_p = *(void **)darray_get(_array, _index) : 0;	\
+		_index++)
 
-#define darray_foreachf(_array, _index, _elem)  \
-    size_t _index; void *_elem;                 \
-    for (_index = 0; (_index < _array->reserve) ? _elem = darray_get(_array, _index) : 0; _index++)
+#define darray_foreach_f(_array, _elem_p)							\
+    for (size_t _index = 0;											\
+		(_index < _array->reserve)									\
+			? _elem_p = *(void **)darray_get(_array, _index) : 0;	\
+		_index++)
 
 // doubley linked list:
 // ====================

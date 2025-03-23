@@ -264,8 +264,8 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 		return WSE_WL_NXDG_OUTPUT;
 	}
 	// get xdg output data
-	darray_foreach(state->outputs, i_output, output_data_p) {
-		struct wl_output_data *output_data = *(struct wl_output_data **)output_data_p;
+	struct wl_output_data *output_data;
+	darray_foreach(state->outputs, output_data) {
 		struct zxdg_output_v1 *xdg_output =
 			zxdg_output_manager_v1_get_xdg_output(state->output_manager, output_data->output);
 		zxdg_output_v1_add_listener(xdg_output, &xdg_output_listener, output_data);
@@ -277,8 +277,8 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 
 ecode_t wl_state_disconnect(struct wl_state *state)
 {
-	darray_foreach(state->outputs, i_output_data, output_data_p) {
-		struct wl_output_data *output_data = *(struct wl_output_data **)output_data_p;
+	struct wl_output_data *output_data;
+	darray_foreach(state->outputs, output_data) {
 		if (output_data != NULL)
 			wl_output_free(output_data);
 	}
@@ -488,8 +488,8 @@ ecode_t image_wlr_screencopy(struct image *r_image, struct wl_state *state, stru
 {
 	struct darray *frames = darray_init(sizeof(struct wlr_frame_data *), 1);
 	uint32_t n_requested = 0, n_ready = 0;
-	darray_foreach(state->outputs, i_output_data, output_data_p) {
-		struct wl_output_data *output_data = *(struct wl_output_data **)output_data_p;
+	struct wl_output_data *output_data;
+	darray_foreach(state->outputs, output_data) {
 		struct rect inter = rect_inter(output_data->area, region);
 		if (!rect_is_valid(inter))
 			continue;
@@ -507,8 +507,8 @@ ecode_t image_wlr_screencopy(struct image *r_image, struct wl_state *state, stru
 
 	struct image image_base;
 	image_create_empty(&image_base, region);
-	darray_foreach(frames, i_frame_data, frame_data_p) {
-		struct wlr_frame_data *frame_data = *(struct wlr_frame_data **)frame_data_p;
+	struct wlr_frame_data *frame_data;
+	darray_foreach(frames, frame_data) {
 		struct image image_part;
 		ecode_t code = wlr_frame_get_image(&image_part, frame_data);
 		if (!code)
