@@ -15,9 +15,12 @@ wl_obj  := $(wl_prot:./wl_prot/%.xml=./build/obj/%.o)
 
 # flags
 c_defs := -D WLR_USE_UNSTABLE
-c_libs := -l m -l wayland-client -l curl -l json-c -l png
+c_libs := -l wayland-client -l curl -l json-c -l png -l xkbcommon
 
 all: ./build/bin/wayshare ./build/bin/wayshare-debug
+
+test: ./build/bin/wayshare-debug
+	./bin/wayshare-debug;
 
 format:
 	@for f in $(c_src) $(c_head); do 				\
@@ -37,7 +40,7 @@ format:
 # code compilation
 $(c_obj): ./build/obj/%.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< -I ./build/wl_src -o ./$@ $(c_defs)
+	gcc -c $< -I ./build/wl_src -o ./$@ $(c_defs) -s
 
 $(c_obj_debug): ./build/obj/%-debug.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p

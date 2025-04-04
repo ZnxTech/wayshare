@@ -1,32 +1,69 @@
 #include "utils.h"
 
-struct rect rect_inter(struct rect rect_1, struct rect rect_2)
+struct rect rect_transpose(struct rect rect)
 {
-	struct rect inter;
-
-	int32_t x1 = fmax(rect_1.x, rect_2.x);
-	int32_t y1 = fmax(rect_1.y, rect_2.y);
-	int32_t x2 = fmin(rect_1.x + rect_1.width, rect_2.x + rect_2.width);
-	int32_t y2 = fmin(rect_1.y + rect_1.height, rect_2.y + rect_2.height);
-
-	inter.x = x1;
-	inter.y = y1;
-	inter.width = x2 - x1;
-	inter.height = y2 - y1;
-
-	return inter;
+	return (struct rect) {
+		.x = rect.x,
+		.y = rect.y,
+		.width = rect.height,
+		.height = rect.width
+	};
 }
 
-struct rect rect_trans(struct rect rect)
+struct rect rect_intersect(struct rect rect_1, struct rect rect_2)
 {
-	struct rect trans;
+	int32_t x1 = max(rect_1.x, rect_2.x);
+	int32_t y1 = max(rect_1.y, rect_2.y);
+	int32_t x2 = min(rect_1.x + rect_1.width, rect_2.x + rect_2.width);
+	int32_t y2 = min(rect_1.y + rect_1.height, rect_2.y + rect_2.height);
 
-	trans.x = rect.x;
-	trans.y = rect.y;
-	trans.width = rect.height;
-	trans.height = rect.width;
+	return (struct rect) {
+		.x = x1,
+		.y = y1,
+		.width = x2 - x1,
+		.height = y2 - y1
+	};
+}
 
-	return trans;
+struct rect rect_contain(struct rect rect_1, struct rect rect_2)
+{
+	int32_t x1 = min(rect_1.x, rect_2.x);
+	int32_t y1 = min(rect_1.y, rect_2.y);
+	int32_t x2 = max(rect_1.x + rect_1.width, rect_2.x + rect_2.width);
+	int32_t y2 = max(rect_1.y + rect_1.height, rect_2.y + rect_2.height);
+
+	return (struct rect) {
+		.x = x1,
+		.y = y1,
+		.width = x2 - x1,
+		.height = y2 - y1
+	};
+}
+
+bool rect_is_intersecting(struct rect rect_1, struct rect rect_2)
+{
+	return (rect_1.x < rect_2.x + rect_2.width)
+		&& (rect_2.x < rect_1.x + rect_1.width)
+		&& (rect_1.y < rect_2.y + rect_2.height)
+		&& (rect_2.y < rect_1.y + rect_1.height);
+}
+
+bool rect_is_contained(struct rect rect_1, struct rect rect_2)
+{
+	return (rect_1.x < rect_2.x)
+		&& (rect_2.x + rect_2.width < rect_1.x + rect_1.width)
+		&& (rect_1.y < rect_2.y)
+		&& (rect_2.y + rect_2.height < rect_1.y + rect_1.height);
+}
+
+struct rect rect_validate(struct rect rect)
+{
+	return (struct rect) {
+		.x = (rect.width) ? rect.x : rect.x + rect.width,
+		.y = (rect.height) ? rect.y : rect.y + rect.height,
+		.width = abs(rect.width),
+		.height = abs(rect.height)
+	};
 }
 
 bool rect_is_valid(struct rect rect)
@@ -34,7 +71,15 @@ bool rect_is_valid(struct rect rect)
 	return (rect.width > 0 && rect.height > 0);
 }
 
-// ====================================================
+struct rect rect_unanchor(struct anchored_rect arect)
+{
+	return (struct rect) {
+		.x = min(arect.anchor_x, arect.vector_x),
+		.y = min(arect.anchor_y, arect.vector_y),
+		.width = abs(arect.anchor_x - arect.vector_x),
+		.height = abs(arect.anchor_y - arect.vector_y)
+	};
+}
 
 static char *create_shm_name()
 {
@@ -84,12 +129,12 @@ static int allocate_shm_fd(int fd, size_t size)
 {
 	// allocate shm space
 	int ret;
-	do {
+	do
 		ret = ftruncate(fd, size);
-	} while (ret < 0 && errno == EINTR);
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0) {
-		// could not allocate smh space
+		// could not allocate shm space
 		close(fd);
 		return -1;
 	}
@@ -101,11 +146,11 @@ ecode_t create_shm_file(int *r_fd, size_t size)
 	const int fd = create_shm_fd();
 
 	if (fd < 0)
-		return WSE_SHM_FDF;
+		return WSE_UTIL_FDF;
 
 	const int ret = allocate_shm_fd(fd, size);
 	if (ret < 0)
-		return WSE_SHM_ALLOCF;
+		return WSE_UTIL_ALLOCF;
 
 	*r_fd = fd;
 	return WS_OK;
@@ -126,17 +171,6 @@ ecode_t get_user_name(const char **r_user_name)
 	return WS_OK;
 }
 
-ecode_t get_host_name(char **r_host_name)
-{
-	const size_t host_name_max = 256;
-	char host_name[host_name_max];
-	gethostname(host_name, host_name_max);
-	host_name[host_name_max - 1] = '\0';
-
-	*r_host_name = strdup(host_name);
-	return WS_OK;
-}
-
 ecode_t get_home_path(const char **r_home_dir_path)
 {
 	const char *home_dir_path = getenv("HOME");
@@ -151,8 +185,6 @@ ecode_t get_home_path(const char **r_home_dir_path)
 	*r_home_dir_path = home_dir_path;
 	return WS_OK;
 }
-
-// ====================================================
 
 struct darray *darray_init(size_t _size, size_t _reserve)
 {

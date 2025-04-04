@@ -9,7 +9,7 @@ static void wl_output_event_geometry(void *data, struct wl_output *wl_output,
 									 int32_t subpixel, const char *make, const char *model,
 									 int32_t transform)
 {
-	struct wl_output_data *output_data = (struct wl_output_data *)data;
+	struct wl_output_data *output_data = data;
 	output_data->x = x;
 	output_data->y = y;
 	output_data->transform = transform;
@@ -18,7 +18,7 @@ static void wl_output_event_geometry(void *data, struct wl_output *wl_output,
 static void wl_output_event_mode(void *data, struct wl_output *wl_output,
 								 uint32_t flags, int32_t width, int32_t height, int32_t refresh)
 {
-	struct wl_output_data *output_data = (struct wl_output_data *)data;
+	struct wl_output_data *output_data = data;
 	output_data->width = width;
 	output_data->height = height;
 }
@@ -30,7 +30,7 @@ static void wl_output_event_done(void *data, struct wl_output *wl_output)
 
 static void wl_output_event_scale(void *data, struct wl_output *wl_output, int32_t factor)
 {
-	struct wl_output_data *output_data = (struct wl_output_data *)data;
+	struct wl_output_data *output_data = data;
 	output_data->scale_factor = factor;
 }
 
@@ -54,6 +54,32 @@ static const struct wl_output_listener output_listener = {
 	.description = wl_output_event_description
 };
 
+static void wl_buffer_event_release(void *data, struct wl_buffer *wl_buffer)
+{
+	struct wl_buffer_data *buffer_data = data;
+	buffer_data->busy = false;
+}
+
+static const struct wl_buffer_listener buffer_listener = {
+	.release = wl_buffer_event_release
+};
+
+static void wl_seat_event_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
+{
+	struct wl_seat_data *seat_data = data;
+	seat_data->capabilities = capabilities;
+}
+
+static void wl_seat_event_name(void *data, struct wl_seat *wl_seat, const char *name)
+{
+
+}
+
+static const struct wl_seat_listener seat_listener = {
+	.capabilities = wl_seat_event_capabilities,
+	.name = wl_seat_event_name
+};
+
 // +------------------------+
 // | xdg output event calls |
 // +------------------------+
@@ -61,17 +87,17 @@ static const struct wl_output_listener output_listener = {
 static void xdg_output_event_logical_position(void *data, struct zxdg_output_v1 *zxdg_output_v1,
 											  int32_t x, int32_t y)
 {
-	struct wl_output_data *output_data_t = (struct wl_output_data *)data;
-	output_data_t->x = x;
-	output_data_t->y = y;
+	struct wl_output_data *output_data = data;
+	output_data->x = x;
+	output_data->y = y;
 }
 
 static void xdg_output_event_logical_size(void *data, struct zxdg_output_v1 *zxdg_output_v1,
 										  int32_t width, int32_t height)
 {
-	struct wl_output_data *output_data_t = (struct wl_output_data *)data;
-	output_data_t->width = width;
-	output_data_t->height = height;
+	struct wl_output_data *output_data = data;
+	output_data->width = width;
+	output_data->height = height;
 }
 
 static void xdg_output_event_done(void *data, struct zxdg_output_v1 *zxdg_output_v1)
@@ -175,49 +201,61 @@ static const struct zwlr_screencopy_frame_v1_listener wlr_frame_listener = {
 static void wl_registry_event_global(void *data, struct wl_registry *registry,
 									 uint32_t name, const char *interface, uint32_t version)
 {
-	if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {
-		WS_LOGF(WS_SEV_INFO, "wlr_screencopy_manager found.\n");
-		struct wl_state *state = (struct wl_state *)data;
-		state->wlr_screencopy_manager =
-			(struct zwlr_screencopy_manager_v1 *)wl_registry_bind(state->registry, name,
-																  &zwlr_screencopy_manager_v1_interface,
-																  version);
-	}
 
-	if (strcmp(interface, zcosmic_screencopy_manager_v2_interface.name) == 0) {
-		WS_LOGF(WS_SEV_INFO, "cosmic_screencopy_manager found.\n");
-		struct wl_state *state = (struct wl_state *)data;
-		state->cosmic_screencopy_manager =
-			(struct zcosmic_screencopy_manager_v2 *)wl_registry_bind(state->registry, name,
-																	 &zcosmic_screencopy_manager_v2_interface,
-																	 version);
+	if (strcmp(interface, wl_compositor_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "wl_compositor found.\n");
+		struct wl_state *state = data;
+		state->compositor = wl_registry_bind(state->registry, name,
+											 &wl_compositor_interface, version);
 	}
 
 	if (strcmp(interface, wl_output_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "wl_output found.\n");
-		struct wl_state *state = (struct wl_state *)data;
+		struct wl_state *state = data;
 		struct wl_output *output =
-			(struct wl_output *)wl_registry_bind(state->registry, name, &wl_output_interface,
-												 version);
+			wl_registry_bind(state->registry, name, &wl_output_interface, version);
+
 		struct wl_output_data *output_data;
 		wl_output_create(&output_data, state, output);
 		darray_append(state->outputs, &output_data);
 	}
 
-	if (strcmp(interface, wl_shm_interface.name) == 0) {
-		WS_LOGF(WS_SEV_INFO, "wl_shm found.\n");
-		struct wl_state *state = (struct wl_state *)data;
-		state->shm =
-			(struct wl_shm *)wl_registry_bind(state->registry, name, &wl_shm_interface, version);
-	}
-
 	if (strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "xdg_output_manager found.\n");
-		struct wl_state *state = (struct wl_state *)data;
-		state->output_manager =
-			(struct zxdg_output_manager_v1 *)wl_registry_bind(state->registry, name,
-															  &zxdg_output_manager_v1_interface,
-															  version);
+		struct wl_state *state = data;
+		state->xdg_output_manager =
+			wl_registry_bind(state->registry, name, &zxdg_output_manager_v1_interface, version);
+	}
+
+	if (strcmp(interface, wl_seat_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "wl_seat found.\n");
+		struct wl_state *state = data;
+		struct wl_seat *seat = wl_registry_bind(state->registry, name, &wl_seat_interface, version);
+
+		struct wl_seat_data *seat_data;
+		wl_seat_create(&seat_data, state, seat);
+		darray_append(state->seats, &seat_data);
+	}
+
+	if (strcmp(interface, wl_shm_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "wl_shm found.\n");
+		struct wl_state *state = data;
+		state->shm = wl_registry_bind(state->registry, name, &wl_shm_interface, version);
+	}
+
+	if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "wlr_screencopy_manager found.\n");
+		struct wl_state *state = data;
+		state->wlr_screencopy_manager =
+			wl_registry_bind(state->registry, name, &zwlr_screencopy_manager_v1_interface, version);
+	}
+
+	if (strcmp(interface, zcosmic_screencopy_manager_v2_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "cosmic_screencopy_manager found.\n");
+		struct wl_state *state = data;
+		state->cosmic_screencopy_manager =
+			wl_registry_bind(state->registry, name,
+							 &zcosmic_screencopy_manager_v2_interface, version);
 	}
 }
 
@@ -229,15 +267,31 @@ static void wl_registry_event_global_remove(void *data, struct wl_registry *regi
 static const struct wl_registry_listener registry_listener = {
 .global = wl_registry_event_global,.global_remove = wl_registry_event_global_remove};
 
-// +-----------------------------+
-// | wayland managment functions |
-// +-----------------------------+
+static ecode_t wl_output_get_logistical(struct wl_state *state, struct wl_output_data *output_data)
+{
+	if (state->xdg_output_manager != NULL) {
+		struct zxdg_output_v1 *xdg_output =
+			zxdg_output_manager_v1_get_xdg_output(state->xdg_output_manager,
+												  output_data->output);
+		zxdg_output_v1_add_listener(xdg_output, &xdg_output_listener, output_data);
+		return WS_OK;
+	} else {
+		/* guess logictical area using {scale_factor} and {transform}. */
+		if (output_data->transform & 1)
+			output_data->area = rect_transpose(output_data->area);
+
+		output_data->width /= output_data->scale_factor;
+		output_data->height /= output_data->scale_factor;
+		return WSE_WL_NXDG_OUTPUT;
+	}
+}
 
 ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 {
 	struct wl_state *state;
-	state = *r_state = calloc(sizeof(struct wl_state), 1);
+	state = calloc(sizeof(struct wl_state), 1);
 	state->outputs = darray_init(sizeof(struct wl_output_data *), 1);
+	state->seats = darray_init(sizeof(struct wl_seat_data *), 1);
 
 	state->display = wl_display_connect(name);
 	if (state->display == NULL) {
@@ -252,37 +306,38 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 	}
 
 	wl_registry_add_listener(state->registry, &registry_listener, state);
-	wl_display_roundtrip(state->display);	// registry events
+	wl_display_roundtrip(state->display);	/* listen to registry events. */
 
 	if (state->outputs->count == 0) {
 		WS_LOGF(WS_SEV_ERR, "no wl_outputs were found.\n");
 		return WSE_WL_NOUTPUT;
 	}
-	// check for xdg output manager
-	if (state->output_manager == NULL) {
-		WS_LOGF(WS_SEV_WARN, "no xdg_output_manager was found.\n");
-		return WSE_WL_NXDG_OUTPUT;
-	}
-	// get xdg output data
-	struct wl_output_data *output_data;
-	darray_foreach(state->outputs, output_data) {
-		struct zxdg_output_v1 *xdg_output =
-			zxdg_output_manager_v1_get_xdg_output(state->output_manager, output_data->output);
-		zxdg_output_v1_add_listener(xdg_output, &xdg_output_listener, output_data);
-		wl_display_roundtrip(state->display);
-	}
 
+	/* get logictical output values. */
+	struct wl_output_data *output_data;
+	darray_foreach(state->outputs, output_data)
+		wl_output_get_logistical(state, output_data);
+
+	wl_display_roundtrip(state->display);	/* listen to xdg output events. */
+
+	*r_state = state;
 	return WS_OK;
 }
 
 ecode_t wl_state_disconnect(struct wl_state *state)
 {
 	struct wl_output_data *output_data;
-	darray_foreach(state->outputs, output_data) {
+	darray_foreach(state->outputs, output_data)
 		if (output_data != NULL)
-			wl_output_free(output_data);
-	}
+		wl_output_free(output_data);
 	darray_free(state->outputs);
+
+	struct wl_seat_data *seat_data;
+	darray_foreach(state->seats, seat_data)
+		if (seat_data != NULL)
+		wl_seat_free(seat_data);
+	darray_free(state->seats);
+
 	if (state->registry != NULL)
 		wl_registry_destroy(state->registry);
 
@@ -296,11 +351,12 @@ ecode_t wl_output_create(struct wl_output_data **r_output_data, struct wl_state 
 						 struct wl_output *output)
 {
 	struct wl_output_data *output_data;
-	output_data = *r_output_data = calloc(sizeof(struct wl_output_data), 1);
+	output_data = calloc(sizeof(struct wl_output_data), 1);
 	output_data->state = state;
 	output_data->output = output;
 	wl_output_add_listener(output_data->output, &output_listener, output_data);
 	wl_display_roundtrip(state->display);
+	*r_output_data = output_data;
 	return WS_OK;
 }
 
@@ -313,11 +369,34 @@ ecode_t wl_output_free(struct wl_output_data *output_data)
 	return WS_OK;
 }
 
+ecode_t wl_seat_create(struct wl_seat_data **r_seat_data, struct wl_state *state,
+					   struct wl_seat *seat)
+{
+	struct wl_seat_data *seat_data;
+	seat_data = calloc(sizeof(struct wl_seat_data), 1);
+	seat_data->state = state;
+	seat_data->seat = seat;
+	wl_seat_add_listener(seat_data->seat, &seat_listener, seat_data);
+	wl_display_roundtrip(state->display);
+
+	*r_seat_data = seat_data;
+	return WS_OK;
+}
+
+ecode_t wl_seat_free(struct wl_seat_data *seat_data)
+{
+	if (seat_data->seat != NULL)
+		wl_seat_destroy(seat_data->seat);
+
+	free(seat_data);
+	return WS_OK;
+}
+
 ecode_t wl_shm_pool_create(struct wl_shm_pool_data **r_shm_pool_data, struct wl_state *state,
 						   size_t size)
 {
 	struct wl_shm_pool_data *shm_pool_data;
-	shm_pool_data = *r_shm_pool_data = calloc(sizeof(struct wl_shm_pool_data), 1);
+	shm_pool_data = calloc(sizeof(struct wl_shm_pool_data), 1);
 	int fd;
 
 	ecode_t code = create_shm_file(&fd, size);
@@ -339,9 +418,9 @@ ecode_t wl_shm_pool_create(struct wl_shm_pool_data **r_shm_pool_data, struct wl_
 	shm_pool_data->used_size = 0;
 	shm_pool_data->ref_count = 0;
 	shm_pool_data->data = data;
-	WS_LOGF(WS_SEV_INFO, "%p\n", data);
-
 	close(fd);
+
+	*r_shm_pool_data = shm_pool_data;
 	return WS_OK;
 }
 
@@ -358,21 +437,20 @@ ecode_t wl_shm_pool_free(struct wl_shm_pool_data *shm_pool_data)
 }
 
 ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
-						 struct wl_shm_pool_data *shm_pool_data, uint32_t width, uint32_t height,
-						 uint32_t stride, uint32_t format)
+						 struct wl_shm_pool_data *shm_pool_data, uint32_t width,
+						 uint32_t height, uint32_t stride, uint32_t format)
 {
 	struct wl_buffer_data *buffer_data;
-	buffer_data = *r_buffer_data = calloc(sizeof(struct wl_buffer_data), 1);
+	buffer_data = calloc(sizeof(struct wl_buffer_data), 1);
 	size_t size = height * stride;
 	if (shm_pool_data->used_size + size > shm_pool_data->total_size)
 		return WSE_WL_BUFFERF;
 
 	buffer_data->state = shm_pool_data->state;
 	buffer_data->ref_shm_pool_data = shm_pool_data;
-	buffer_data->buffer =
-		wl_shm_pool_create_buffer(shm_pool_data->shm_pool, shm_pool_data->used_size, width, height,
-								  stride, format);
-
+	buffer_data->buffer = wl_shm_pool_create_buffer(shm_pool_data->shm_pool,
+													shm_pool_data->used_size,
+													width, height, stride, format);
 	buffer_data->width = width;
 	buffer_data->height = height;
 	buffer_data->stride = stride;
@@ -381,6 +459,8 @@ ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
 	buffer_data->data = shm_pool_data->data + shm_pool_data->used_size;
 	shm_pool_data->used_size += size;
 	shm_pool_data->ref_count++;
+	wl_buffer_add_listener(buffer_data->buffer, &buffer_listener, buffer_data);
+	*r_buffer_data = buffer_data;
 	return WS_OK;
 }
 
@@ -399,7 +479,7 @@ ecode_t wlr_frame_create(struct wlr_frame_data **r_frame_data, struct wl_state *
 						 struct wl_output_data *output_data, uint32_t cursor, uint32_t *n_ready)
 {
 	struct wlr_frame_data *frame_data;
-	frame_data = *r_frame_data = calloc(sizeof(struct wlr_frame_data), 1);
+	frame_data = calloc(sizeof(struct wlr_frame_data), 1);
 	frame_data->state = state;
 	frame_data->frame =
 		zwlr_screencopy_manager_v1_capture_output(state->wlr_screencopy_manager,
@@ -409,6 +489,8 @@ ecode_t wlr_frame_create(struct wlr_frame_data **r_frame_data, struct wl_state *
 	frame_data->ready = false;
 	zwlr_screencopy_frame_v1_add_listener(frame_data->frame, &wlr_frame_listener, frame_data);
 	wl_display_roundtrip(state->display);
+
+	*r_frame_data = frame_data;
 	return WS_OK;
 }
 
@@ -417,7 +499,7 @@ ecode_t wlr_frame_region_create(struct wlr_frame_data **r_frame_data, struct wl_
 								uint32_t cursor, uint32_t *n_ready)
 {
 	struct wlr_frame_data *frame_data;
-	frame_data = *r_frame_data = calloc(sizeof(struct wlr_frame_data), 1);
+	frame_data = calloc(sizeof(struct wlr_frame_data), 1);
 	frame_data->state = state;
 	frame_data->frame =
 		zwlr_screencopy_manager_v1_capture_output_region(state->wlr_screencopy_manager,
@@ -430,15 +512,17 @@ ecode_t wlr_frame_region_create(struct wlr_frame_data **r_frame_data, struct wl_
 	frame_data->ready = false;
 	zwlr_screencopy_frame_v1_add_listener(frame_data->frame, &wlr_frame_listener, frame_data);
 	wl_display_roundtrip(state->display);
+
+	*r_frame_data = frame_data;
 	return WS_OK;
 }
 
-ecode_t wlr_frame_abs_region_create(struct wlr_frame_data **r_frame_data, struct wl_state *state,
-									struct wl_output_data *output_data, struct rect region,
-									uint32_t cursor, uint32_t *n_ready)
+ecode_t wlr_frame_absolute_region_create(struct wlr_frame_data **r_frame_data,
+										 struct wl_state *state, struct wl_output_data *output_data,
+										 struct rect region, uint32_t cursor, uint32_t *n_ready)
 {
 	struct wlr_frame_data *frame_data;
-	frame_data = *r_frame_data = calloc(sizeof(struct wlr_frame_data), 1);
+	frame_data = calloc(sizeof(struct wlr_frame_data), 1);
 	frame_data->state = state;
 	frame_data->frame =
 		zwlr_screencopy_manager_v1_capture_output_region(state->wlr_screencopy_manager,
@@ -452,6 +536,8 @@ ecode_t wlr_frame_abs_region_create(struct wlr_frame_data **r_frame_data, struct
 	frame_data->ready = false;
 	zwlr_screencopy_frame_v1_add_listener(frame_data->frame, &wlr_frame_listener, frame_data);
 	wl_display_roundtrip(state->display);
+
+	*r_frame_data = frame_data;
 	return WS_OK;
 }
 
@@ -490,12 +576,12 @@ ecode_t image_wlr_screencopy(struct image *r_image, struct wl_state *state, stru
 	uint32_t n_requested = 0, n_ready = 0;
 	struct wl_output_data *output_data;
 	darray_foreach(state->outputs, output_data) {
-		struct rect inter = rect_inter(output_data->area, region);
+		struct rect inter = rect_intersect(output_data->area, region);
 		if (!rect_is_valid(inter))
 			continue;
 
 		struct wlr_frame_data *frame_data;
-		wlr_frame_abs_region_create(&frame_data, state, output_data, inter, 0, &n_ready);
+		wlr_frame_absolute_region_create(&frame_data, state, output_data, inter, 0, &n_ready);
 		wlr_frame_copy(frame_data);
 		darray_append(frames, &frame_data);
 		n_requested++;

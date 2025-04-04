@@ -283,7 +283,7 @@ ecode_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, struct i
 ecode_t image_layer_overwrite(struct image dest_image, struct image src_image)
 {
 
-	const struct rect inter = rect_inter(dest_image.area, src_image.area);
+	const struct rect inter = rect_intersect(dest_image.area, src_image.area);
 	if (!rect_is_valid(inter))
 		return WS_OK;		   // images dont intersect, nothing to do.
 
@@ -303,7 +303,7 @@ ecode_t image_layer_overwrite(struct image dest_image, struct image src_image)
 
 ecode_t image_layer_overlay(struct image dest_image, struct image src_image)
 {
-	const struct rect inter = rect_inter(dest_image.area, src_image.area);
+	const struct rect inter = rect_intersect(dest_image.area, src_image.area);
 	if (!rect_is_valid(inter))
 		return WS_OK;		   // images dont intersect, nothing to do.
 
@@ -392,7 +392,7 @@ ecode_t image_transpos(struct image *image)
 
 	free(image->data);
 	image->data = trans_buffer;
-	image->area = rect_trans(image->area);
+	image->area = rect_transpose(image->area);
 
 	return WS_OK;
 }
