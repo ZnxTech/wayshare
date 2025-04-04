@@ -6,6 +6,8 @@
 
 #include <wayland-client.h>
 #include "xdg-output-unstable-v1.h"
+#include "cursor-shape-v1.h"
+#include "wlr-layer-shell-unstable-v1.h"
 #include "wlr-screencopy-unstable-v1.h"
 #include "cosmic-screencopy-unstable-v2.h"
 
@@ -26,8 +28,10 @@ struct wl_state {
 	struct wl_compositor *compositor;
 	struct darray *outputs;
 	struct zxdg_output_manager_v1 *xdg_output_manager;
+	struct wp_cursor_shape_manager_v1 *cursor_shape_manager;
 	struct darray *seats;
 	struct wl_shm *shm;
+	struct zwlr_layer_shell_v1 *wlr_layer_shell;
 	struct zwlr_screencopy_manager_v1 *wlr_screencopy_manager;
 	struct zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager;
 };

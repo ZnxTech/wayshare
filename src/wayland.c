@@ -227,6 +227,13 @@ static void wl_registry_event_global(void *data, struct wl_registry *registry,
 			wl_registry_bind(state->registry, name, &zxdg_output_manager_v1_interface, version);
 	}
 
+	if (strcmp(interface, wp_cursor_shape_manager_v1_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "cursor_shape_manager found.\n");
+		struct wl_state *state = data;
+		state->cursor_shape_manager =
+			wl_registry_bind(state->registry, name, &wp_cursor_shape_manager_v1_interface, version);
+	}
+
 	if (strcmp(interface, wl_seat_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "wl_seat found.\n");
 		struct wl_state *state = data;
@@ -241,6 +248,13 @@ static void wl_registry_event_global(void *data, struct wl_registry *registry,
 		WS_LOGF(WS_SEV_INFO, "wl_shm found.\n");
 		struct wl_state *state = data;
 		state->shm = wl_registry_bind(state->registry, name, &wl_shm_interface, version);
+	}
+
+	if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
+		WS_LOGF(WS_SEV_INFO, "wlr_layer_shell found.\n");
+		struct wl_state *state = data;
+		state->wlr_layer_shell =
+			wl_registry_bind(state->registry, name, &zwlr_layer_shell_v1_interface, version);
 	}
 
 	if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {

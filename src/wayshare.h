@@ -47,4 +47,7 @@ typedef int32_t ecode_t;
 #define WSE_CONFIG_NVAR_VALUE   -0x0505
 #define WSE_CONFIG_NVAR_CLOSE   -0x0506
 
+#define WSE_SELECTOR_NWLR_LAYER -0x0600
+#define WSE_SELECTOR_NSELECTION -0x0601
+
 #endif						   // WS_WAYSHARE_H
