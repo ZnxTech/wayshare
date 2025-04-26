@@ -1,424 +1,233 @@
 #include "image.h"
 
-ecode_t format_from_wl_format(struct format *r_format, int32_t wl_format)
+ecode_t image_create(struct image **r_image, struct rect area, struct format format)
 {
-
-	// NOTE:
-	// =====
-	// since wayland formats are represented in little endian
-	// their naming is mirrored compared to their wayshare equivalents.
-
-	switch (wl_format) {
-	case WL_SHM_FORMAT_ABGR16161616:	// 64 bit:  // A-16161616
-		*r_format = WS_FORMAT_R16G16B16A16;	// =======
-		break;
-
-	case WL_SHM_FORMAT_ARGB16161616:
-		*r_format = WS_FORMAT_B16G16R16A16;
-		break;
-
-	case WL_SHM_FORMAT_XBGR16161616:	// X-16161616
-		*r_format = WS_FORMAT_R16G16B16X16;
-		break;
-
-	case WL_SHM_FORMAT_XRGB16161616:
-		*r_format = WS_FORMAT_B16G16R16X16;
-		break;
-
-	case WL_SHM_FORMAT_ABGR8888:	// 32 bit:  // A-8888
-		*r_format = WS_FORMAT_R8G8B8A8;	// =======
-		break;
-
-	case WL_SHM_FORMAT_ARGB8888:
-		*r_format = WS_FORMAT_B8G8R8A8;
-		break;
-
-	case WL_SHM_FORMAT_BGRA8888:
-		*r_format = WS_FORMAT_A8R8G8B8;
-		break;
-
-	case WL_SHM_FORMAT_RGBA8888:
-		*r_format = WS_FORMAT_A8B8G8R8;
-		break;
-
-	case WL_SHM_FORMAT_XBGR8888:	// X-8888
-		*r_format = WS_FORMAT_R8G8B8X8;
-		break;
-
-	case WL_SHM_FORMAT_XRGB8888:
-		*r_format = WS_FORMAT_B8G8R8X8;
-		break;
-
-	case WL_SHM_FORMAT_BGRX8888:
-		*r_format = WS_FORMAT_X8R8G8B8;
-		break;
-
-	case WL_SHM_FORMAT_RGBX8888:
-		*r_format = WS_FORMAT_X8B8G8R8;
-		break;
-
-	case WL_SHM_FORMAT_ABGR1555:	// A-5551
-		*r_format = WS_FORMAT_R5G5B5A1;
-		break;
-
-	case WL_SHM_FORMAT_ARGB1555:
-		*r_format = WS_FORMAT_B5G5R5A1;
-		break;
-
-	case WL_SHM_FORMAT_BGRA5551:
-		*r_format = WS_FORMAT_A1R5G5B5;
-		break;
-
-	case WL_SHM_FORMAT_RGBA5551:
-		*r_format = WS_FORMAT_A1B5G5R5;
-		break;
-
-	case WL_SHM_FORMAT_XBGR1555:	// X-5551
-		*r_format = WS_FORMAT_R5G5B5X1;
-		break;
-
-	case WL_SHM_FORMAT_XRGB1555:
-		*r_format = WS_FORMAT_B5G5R5X1;
-		break;
-
-	case WL_SHM_FORMAT_BGRX5551:
-		*r_format = WS_FORMAT_X1R5G5B5;
-		break;
-
-	case WL_SHM_FORMAT_RGBX5551:
-		*r_format = WS_FORMAT_X1B5G5R5;
-		break;
-
-	case WL_SHM_FORMAT_RGB888:	// 24 bit:  // _-888
-		*r_format = WS_FORMAT_B8G8R8;	// =======
-		break;
-
-	case WL_SHM_FORMAT_BGR888:
-		*r_format = WS_FORMAT_R8G8B8;
-		break;
-
-	case WL_SHM_FORMAT_ABGR4444:	// 16 bit:  // A-4444
-		*r_format = WS_FORMAT_R4G4B4A4;	// =======
-		break;
-
-	case WL_SHM_FORMAT_ARGB4444:
-		*r_format = WS_FORMAT_B4G4R4A4;
-		break;
-
-	case WL_SHM_FORMAT_BGRA4444:
-		*r_format = WS_FORMAT_A4R4G4B4;
-		break;
-
-	case WL_SHM_FORMAT_RGBA4444:
-		*r_format = WS_FORMAT_A4B4G4R4;
-		break;
-
-	case WL_SHM_FORMAT_XBGR4444:	// X-4444
-		*r_format = WS_FORMAT_R4G4B4X4;
-		break;
-
-	case WL_SHM_FORMAT_XRGB4444:
-		*r_format = WS_FORMAT_B4G4R4X4;
-		break;
-
-	case WL_SHM_FORMAT_BGRX4444:
-		*r_format = WS_FORMAT_X4R4G4B4;
-		break;
-
-	case WL_SHM_FORMAT_RGBX4444:
-		*r_format = WS_FORMAT_X4B4G4R4;
-		break;
-
-	case WL_SHM_FORMAT_BGR565:	// _-565
-		*r_format = WS_FORMAT_R5G6B5;
-		break;
-
-	case WL_SHM_FORMAT_RGB565:
-		*r_format = WS_FORMAT_B5G6R5;
-		break;
-
-	case WL_SHM_FORMAT_BGR233:	// 8 bit:   // _-332
-		*r_format = WS_FORMAT_R3G3B2;	// ======
-		break;
-
-	case WL_SHM_FORMAT_RGB332:
-		*r_format = WS_FORMAT_B2G3R3;
-		break;
-
-	default:
-		WS_LOGF(WS_SEV_WARN, "wayland format %i not currently supported.\n", wl_format);
-		return WSE_IMG_NSFORMAT;
-	}
-
+	struct image *image;
+	image = calloc(1, sizeof(struct image));
+	image->area = area;
+	image->format = format;
+	image->data = malloc(area.width * area.height * (format.pix_depth / 8));
+	*r_image = image;
 	return WS_OK;
 }
 
-ecode_t image_create_empty(struct image *r_image, struct rect area)
+ecode_t image_create_empty(struct image **r_image, struct rect area, struct format format)
 {
-	struct image image = { };
-	image.area = area;
+	struct image *image;
+	image = calloc(1, sizeof(struct image));
+	image->area = area;
+	image->format = format;
+	image->data = calloc(area.width * area.height, (format.pix_depth / 8));
+	*r_image = image;
+	return WS_OK;
+}
 
-	image.data = (struct color32 *)calloc(image.width * image.height, sizeof(struct color32));
+ecode_t image_create_buffer(struct image **r_image, struct rect area, struct format format,
+							void *buffer)
+{
+	struct image *image;
+	image_create(&image, area, format);
+	memcpy(image->data, buffer, area.width * area.height * (format.pix_depth / 8));
+	*r_image = image;
+	return WS_OK;
+}
+
+ecode_t image_free(struct image *image)
+{
+	free(image->data);
+	free(image);
+	return WS_OK;
+}
+
+ecode_t image_clone(struct image **r_image, struct image *src_image)
+{
+	struct image *image;
+	image_create_buffer(&image, src_image->area, src_image->format, src_image->data);
+	image->transform = src_image->transform;
+	*r_image = image;
+	return WS_OK;
+}
+
+ecode_t image_set_transform(struct image *image, uint32_t transform)
+{
+	uint32_t rotation = (image->transform + transform) % 4;
+	/* replace the 2 first bits with the new rotation values. */
+	image->transform = (image->transform & ~(uint32_t) 0b11) | rotation;
+	image->transform ^= transform & TRANSFORM_MIRRORED;
+	return WS_OK;
+}
+
+struct rect image_get_logical_area(struct image *image)
+{
+	if (image->transform & TRANSFORM_90DEG)
+		return rect_transpose(image->area);
+	else
+		return image->area;
+}
+
+static void coords_buffer_to_logical(uint32_t *r_logical_x, uint32_t *r_logical_y,
+									 struct image *image, uint32_t buffer_x, uint32_t buffer_y)
+{
+	/* first invert then swap coords. */
+	bool inv_x = false, inv_y = false, swap = false;
+
+	/* 90deg CCW transform. */
+	inv_x ^= image->transform & TRANSFORM_90DEG;
+	swap ^= image->transform & TRANSFORM_90DEG;
+
+	/* 180deg CCW transform. */
+	inv_x ^= image->transform & TRANSFORM_180DEG;
+	inv_y ^= image->transform & TRANSFORM_180DEG;
+
+	/* mirror transform. */
+	inv_x ^= image->transform & TRANSFORM_MIRRORED;
+
+	uint32_t x = (inv_x) ? (image->width - buffer_x - 1) : buffer_x;
+	uint32_t y = (inv_y) ? (image->height - buffer_y - 1) : buffer_y;
+
+	*r_logical_x = (swap) ? y : x;
+	*r_logical_y = (swap) ? x : y;
+}
+
+static void coords_logical_to_buffer(uint32_t *r_buffer_x, uint32_t *r_buffer_y,
+									 struct image *image, uint32_t logical_x, uint32_t logical_y)
+{
+	/* first invert then swap coords. */
+	bool inv_x = false, inv_y = false, swap = false;
+
+	/* 90deg CW transform. */
+	inv_y ^= image->transform & TRANSFORM_90DEG;
+	swap ^= image->transform & TRANSFORM_90DEG;
+
+	/* 180deg CW transform. */
+	inv_x ^= image->transform & TRANSFORM_180DEG;
+	inv_y ^= image->transform & TRANSFORM_180DEG;
+
+	/* mirror transform. */
+	inv_x ^= image->transform & TRANSFORM_MIRRORED;
+
+	uint32_t x = (inv_x) ? (image->width - logical_x - 1) : logical_x;
+	uint32_t y = (inv_y) ? (image->height - logical_y - 1) : logical_y;
+
+	*r_buffer_x = (swap) ? y : x;
+	*r_buffer_y = (swap) ? x : y;
+}
+
+static inline void *get_pix_pointer(struct image *image, uint32_t x, uint32_t y)
+{
+	return image->data + (y * image->width + x) * (image->format.pix_depth / 8);
+}
+
+/* creates a new image from the {src_image} with format {format}. */
+ecode_t image_reformat(struct image **r_image, struct image *src_image, struct format format)
+{
+	uint64_t(*reformat_func) (uint64_t, struct format, struct format) = NULL;
+	ecode_t code = get_reformat_func(&reformat_func, src_image->format, format);
+	if (code)
+		return WSE_IMG_REFORMATF;
+
+	struct image *image;
+	image_create(&image, src_image->area, format);
+	image_set_transform(image, src_image->transform);
+
+	const size_t new_pix_size = image->format.pix_depth / 8;
+	for (size_t i_pix = 0; i_pix < image->width * image->height; i_pix++) {
+		/* extract pixel and reformat. */
+		uint64_t pix = *(uint64_t *) get_pix_pointer(src_image, i_pix, 0);
+		if (reformat_func != NULL)
+			pix = reformat_func(pix, src_image->format, format);
+		memcpy(get_pix_pointer(image, i_pix, 0), &pix, new_pix_size);
+	}
 
 	*r_image = image;
 	return WS_OK;
 }
 
-ecode_t image_create_from_buffer(struct image *r_image, struct rect area, uint8_t *buffer,
+/* creates a new image from the {src_image} with formath {format}, transformed. */
+ecode_t image_reformat_transform(struct image **r_image, struct image *src_image,
 								 struct format format)
 {
+	uint64_t(*reformat_func) (uint64_t, struct format, struct format) = NULL;
+	ecode_t code = get_reformat_func(&reformat_func, src_image->format, format);
+	if (code)
+		return WSE_IMG_REFORMATF;
 
-	struct image image = { };
-	image_create_empty(&image, area);
+	struct image *image;
+	image_create(&image, image_get_logical_area(src_image), format);
 
-	const uint8_t format_byte_size = (format.pixel_bit_size / 8);
+	const size_t new_pix_size = image->format.pix_depth / 8;
+	for (uint32_t y = 0; y < image->height; y++) {
+		for (uint32_t x = 0; x < image->width; x++) {
+			uint32_t buffer_x, buffer_y;
+			coords_logical_to_buffer(&buffer_x, &buffer_y, src_image, x, y);
 
-	const uint8_t min_subpixel = format.subpixel_offset;
-	const uint8_t max_subpixel = min_subpixel + format.subpixel_count;
-
-	uint8_t total_subpixel_offset = 0;
-	for (uint8_t i_subpixel = 0; i_subpixel < format.subpixel_offset; i_subpixel++)
-		total_subpixel_offset += format.color_bit_depths[i_subpixel];
-
-	for (uint64_t i_pixel = 0; i_pixel < image.width * image.height; i_pixel++) {
-		struct color32 *cur_image_pixel = image.data + i_pixel;
-		u_int8_t *cur_buffer_pixel = buffer + i_pixel * format_byte_size;
-
-		// copy pixel buffer to value buffer.
-		uint64_t cur_buffer_pixel_value = 0;
-		memcpy(&cur_buffer_pixel_value, cur_buffer_pixel, format_byte_size);
-
-		// skip offset subpixels.
-		cur_buffer_pixel_value >>= total_subpixel_offset;
-
-		for (uint8_t i_subpixel = min_subpixel; i_subpixel < max_subpixel; i_subpixel++) {
-			uint8_t cur_subpixel_on_image_pos = WS_GET_COLOR_ORDER(format.color_order, i_subpixel);
-
-			// calculate the amount of overflowing bit above 8, a byte.
-			uint8_t cur_bit_depth_overflow =
-				format.color_bit_depths[i_subpixel] >
-				8 ? format.color_bit_depths[i_subpixel] - 8 : 0;
-
-			// new bit depth size for this color, with a max of 8.
-			uint8_t cur_bit_depth_new =
-				format.color_bit_depths[i_subpixel] - cur_bit_depth_overflow;
-
-			// biggest number representable with {cur_bit_depth_new} bits.
-			uint8_t cur_bit_depth_max = (0xff >> (8 - cur_bit_depth_new));
-
-			// mask out the current color value.
-			uint16_t cur_subpixel_color =
-				(cur_buffer_pixel_value >> cur_bit_depth_overflow) & cur_bit_depth_max;
-
-			// normalize/scale the color from its bit size to the standard 8 bit.
-			cur_subpixel_color = (cur_subpixel_color * UINT8_MAX) / cur_bit_depth_max;
-
-			// cur_subpixel_color =
-			//     cur_subpixel_color * (UINT8_MAX / cur_bit_depth_max)
-			//   +(cur_subpixel_color * (UINT8_MAX % cur_bit_depth_max)) / cur_bit_depth_max;
-
-			// set final color to image.
-			cur_image_pixel->subpixel[cur_subpixel_on_image_pos] = (uint8_t) cur_subpixel_color;
-
-			// shift to next subpixel.
-			cur_buffer_pixel_value >>= format.color_bit_depths[i_subpixel];
+			uint64_t pix = *(uint64_t *) get_pix_pointer(src_image, buffer_x, buffer_y);
+			if (reformat_func != NULL)
+				pix = reformat_func(pix, src_image->format, image->format);
+			memcpy(get_pix_pointer(image, x, y), &pix, new_pix_size);
 		}
-
-		// make pixel opaque if buffer has no alpha values.
-		if (!(format.color_type & WS_COLOR_TYPE_MASK_ALPHA))
-			cur_image_pixel->alpha = UINT8_MAX;
 	}
 
 	*r_image = image;
 	return WS_OK;
 }
 
-// middleman function for free(), used for destructor like purposes if needed.
-ecode_t image_delete(struct image image)
+/* creates a new image from {src_image} transformed. */
+ecode_t image_transform(struct image **r_image, struct image *src_image)
 {
-	free(image.data);
-	return WS_OK;
-}
+	struct image *image;
+	image_create(&image, image_get_logical_area(src_image), src_image->format);
 
-ecode_t image_clone(struct image *r_image, struct image src_image)
-{
-	struct image new_image = { };
+	const size_t new_pix_size = image->format.pix_depth / 8;
+	for (uint32_t y = 0; y < image->height; y++) {
+		for (uint32_t x = 0; x < image->width; x++) {
+			uint32_t buffer_x, buffer_y;
+			coords_logical_to_buffer(&buffer_x, &buffer_y, src_image, x, y);
 
-	image_create_empty(&new_image, src_image.area);
-	memcpy(new_image.data, src_image.data,
-		   src_image.width * src_image.height * sizeof(struct color32));
-
-	*r_image = new_image;
-	return WS_OK;
-}
-
-ecode_t buffer_create_from_image(uint8_t *r_buffer, uint8_t color_type, struct image image)
-{
-
-	const uint8_t buffer_subpixel_count = color_type + 1;
-	uint8_t *buffer =
-		(uint8_t *) calloc(buffer_subpixel_count * image.width * image.height, sizeof(uint8_t));
-
-	for (uint64_t i_pixel = 0; i_pixel < image.width * image.height; i_pixel++) {
-		struct color32 *cur_image_pixel = image.data + i_pixel;
-		uint8_t *cur_buffer_pixel = buffer + i_pixel * buffer_subpixel_count;
-
-		// {image_pixel_delta} [0,2] delta offset in-case the buffer type is grayscale, if so skip 2 subpixels and-
-		// set alpha to the alpha subpixel and blue to the gray subpixel which ill be overwriten after.
-		uint8_t image_pixel_delta = !(color_type & WS_COLOR_TYPE_MASK_COLOR) * 2;
-		memcpy(cur_buffer_pixel, (uint8_t *) cur_image_pixel + image_pixel_delta,
-			   buffer_subpixel_count);
-		// grayscale by taking the avg of the 3 colors.
-		if (!(color_type & WS_COLOR_TYPE_MASK_COLOR))
-			*cur_buffer_pixel =
-				cur_image_pixel->red / 3 + cur_image_pixel->green / 3 + cur_image_pixel->blue / 3
-				+ (cur_image_pixel->red % 3 + cur_image_pixel->green % 3 +
-				   cur_image_pixel->blue % 3) / 3;
-	}
-
-	r_buffer = buffer;
-	return WS_OK;
-}
-
-ecode_t image_layer_overwrite(struct image dest_image, struct image src_image)
-{
-
-	const struct rect inter = rect_intersect(dest_image.area, src_image.area);
-	if (!rect_is_valid(inter))
-		return WS_OK;		   // images dont intersect, nothing to do.
-
-	const int64_t dest_0 = (inter.y - dest_image.y) * dest_image.width + inter.x - dest_image.x;
-	const int64_t src_0 = (inter.y - src_image.y) * src_image.width + inter.x - src_image.x;
-
-	for (uint32_t dy = 0; dy < inter.height; dy++) {
-		// "x"_color refers to the color pointer at the start of each horizontal line in the inter
-		// from the perspective of the "x"'s image.
-		struct color32 *dest_color = dest_image.data + dest_0 + dy * dest_image.width;
-		struct color32 *src_color = src_image.data + src_0 + dy * src_image.width;
-		memcpy(dest_color, src_color, inter.width * sizeof(struct color32));
-	}
-
-	return WS_OK;
-}
-
-ecode_t image_layer_overlay(struct image dest_image, struct image src_image)
-{
-	const struct rect inter = rect_intersect(dest_image.area, src_image.area);
-	if (!rect_is_valid(inter))
-		return WS_OK;		   // images dont intersect, nothing to do.
-
-	const int64_t dest_0 = (inter.y - dest_image.y) * dest_image.width + inter.x - dest_image.x;
-	const int64_t src_0 = (inter.y - src_image.y) * src_image.width + inter.x - src_image.x;
-
-	for (uint32_t dy = 0; dy < inter.height; dy++) {
-		for (uint32_t dx = 0; dx < inter.width; dx++) {
-			// "x"_color refers to the color32 pointer at the point (dx,dy) in the inter
-			// from the perspective of the "x"'s image.
-			struct color32 *dest_color = dest_image.data + dest_0 + dx + dy * dest_image.width;
-			struct color32 *src_color = src_image.data + src_0 + dx + dy * src_image.width;
-
-			// alpha compositing:
-			// 0 <- A over B, where a - alpha [0,1] & C - color [0,1]
-			// a_0 = a_A + a_B*(1-a_A)
-			// C_0 = (C_A*a_A + C_B*a_B*(1-a_A)) / a_0
-
-			const uint8_t dest_alpha_part =
-				(uint16_t) dest_color->alpha * (UINT8_MAX - src_color->alpha) / UINT8_MAX;
-
-			const uint16_t new_alpha = src_color->alpha + dest_alpha_part;
-
-			dest_color->red =
-				((uint16_t) src_color->red * src_color->alpha
-				 + (uint16_t) dest_color->red * dest_alpha_part)
-				/ new_alpha;
-
-			dest_color->green =
-				((uint16_t) src_color->green * src_color->alpha
-				 + (uint16_t) dest_color->green * dest_alpha_part)
-				/ new_alpha;
-
-			dest_color->blue =
-				((uint16_t) src_color->blue * src_color->alpha
-				 + (uint16_t) dest_color->blue * dest_alpha_part)
-				/ new_alpha;
-
-			dest_color->alpha = new_alpha;
+			uint64_t pix = *(uint64_t *) get_pix_pointer(src_image, buffer_x, buffer_y);
+			memcpy(get_pix_pointer(image, x, y), &pix, new_pix_size);
 		}
 	}
 
 	return WS_OK;
 }
 
-ecode_t image_vaxis_flip(struct image image)
+/**
+ * layers an image {src_image} on top of the {dst_image}, copying the reletive to their coords.
+ * {src_image} pixels will have their format converted if they dont match {cst_image}'s format.
+ */
+ecode_t image_layer(struct image *dst_image, struct image *src_image)
 {
-	struct color32 temp_pixel;
+	struct rect src_area = image_get_logical_area(src_image);
+	struct rect dst_area = image_get_logical_area(dst_image);
+	struct rect intersect = rect_intersect(src_area, dst_area);
+	if (!rect_is_valid(intersect))
+		return WS_OK;		   /* images dont intersect, nothing to do. */
 
-	for (uint32_t x = 0; x < image.width / 2; x++) {
-		for (uint32_t y = 0; y < image.height; y++) {
-			temp_pixel = image.data[x + y * image.width];
-			image.data[x + y * image.width] = image.data[image.width - x - 1 + y * image.width];
-			image.data[image.width - x - 1 + y * image.width] = temp_pixel;
+	/* calculate the intersection's starting coords delta in src and dst. */
+	const uint32_t src_delta_x = intersect.x - src_area.x;
+	const uint32_t src_delta_y = intersect.y - src_area.y;
+
+	const uint32_t dst_delta_x = intersect.x - dst_area.x;
+	const uint32_t dst_delta_y = intersect.y - dst_area.y;
+
+	uint64_t(*reformat_func) (uint64_t, struct format, struct format) = NULL;
+	ecode_t code = get_reformat_func(&reformat_func, src_image->format, dst_image->format);
+	if (code)
+		return WSE_IMG_REFORMATF;
+
+	const size_t dst_pix_size = dst_image->format.pix_depth / 8;
+	for (uint32_t y = 0; y < intersect.height; y++) {
+		for (uint32_t x = 0; x < intersect.width; x++) {
+			uint32_t src_x, src_y, dst_x, dst_y;
+			coords_logical_to_buffer(&src_x, &src_y, src_image, x + src_delta_x, y + src_delta_y);
+			coords_logical_to_buffer(&dst_x, &dst_y, dst_image, x + dst_delta_x, y + dst_delta_y);
+
+			uint64_t pix = *(uint64_t *) get_pix_pointer(src_image, src_x, src_y);
+			if (reformat_func != NULL)
+				pix = reformat_func(pix, src_image->format, dst_image->format);
+			memcpy(get_pix_pointer(dst_image, dst_x, dst_y), &pix, dst_pix_size);
 		}
-	}
-
-	return WS_OK;
-}
-
-ecode_t image_haxis_flip(struct image image)
-{
-	struct color32 temp_pixel;
-
-	for (uint32_t x = 0; x < image.width; x++) {
-		for (uint32_t y = 0; y < image.height / 2; y++) {
-			temp_pixel = image.data[x + y * image.width];
-			image.data[x + y * image.width] = image.data[x + (image.height - y - 1) * image.width];
-			image.data[x + (image.height - y - 1) * image.width] = temp_pixel;
-		}
-	}
-
-	return WS_OK;
-}
-
-// O(n^2) memory algorithms, might improve them later.
-
-ecode_t image_transpos(struct image *image)
-{
-	struct color32 *trans_buffer =
-		(struct color32 *)calloc(image->width * image->height, sizeof(struct color32));
-
-	for (uint32_t x = 0; x < image->width; x++)
-		for (uint32_t y = 0; y < image->height; y++)
-			trans_buffer[y + x * image->height] = image->data[x + y * image->width];
-
-	free(image->data);
-	image->data = trans_buffer;
-	image->area = rect_transpose(image->area);
-
-	return WS_OK;
-}
-
-ecode_t image_rotate(struct image *image, uint8_t rotation)
-{
-	rotation = rotation % 4;
-
-	switch (rotation) {
-	case 1:
-		image_transpos(image);
-		image_vaxis_flip(*image);
-		break;
-
-	case 2:
-		image_vaxis_flip(*image);
-		image_haxis_flip(*image);
-		break;
-
-	case 3:
-		image_transpos(image);
-		image_haxis_flip(*image);
-		break;
-
-	default:
-		break;
 	}
 
 	return WS_OK;
