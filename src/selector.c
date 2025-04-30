@@ -252,6 +252,9 @@ static void wl_pointer_event_motion(void *data, struct wl_pointer *wl_pointer, u
 		state->selection.vector_y += absolute_y - state->selection.vector_y;
 		selector_request_frame(state);
 		break;
+
+	default:
+		break;
 	}
 }
 
@@ -514,7 +517,7 @@ ecode_t selector_create(struct selector_state **r_selector, struct wl_state *way
 	selector_init_inputs(selector);
 	/* init selector wlr layers. */
 	ecode_t code = selector_init_layers(selector);
-	if (!code)
+	if (code)
 		return code;
 
 	*r_selector = selector;

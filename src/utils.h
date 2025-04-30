@@ -135,19 +135,19 @@ void darray_set(struct darray *_array, size_t _pos, const void *_elem);
 #define darray_foreach(_array, _elem_p)											\
 	for (size_t _unique_var(_index) = 0;										\
 		(_unique_var(_index) < _array->count)									\
-			? _elem_p = *(void **)darray_get(_array, _unique_var(_index)) : 0;	\
+			? (_elem_p = *(void **)darray_get(_array, _unique_var(_index))) : 0;\
 		_unique_var(_index)++)
 
 #define darray_foreach_i(_array, _index, _elem_p)					\
 	for (_index = 0;												\
 		(_index < _array->count)									\
-			? _elem_p = *(void **)darray_get(_array, _index) : 0;	\
+			? (_elem_p = *(void **)darray_get(_array, _index)) : 0;	\
 		_index++)
 
 #define darray_foreach_f(_array, _elem_p)										\
     for (size_t _unique_var(_index) = 0;										\
 		(_unique_var(_index) < _array->reserve)									\
-			? _elem_p = *(void **)darray_get(_array, _unique_var(_index)) : 0;	\
+			? (_elem_p = *(void **)darray_get(_array, _unique_var(_index))) : 0;\
 		_unique_var(_index)++)
 
 /**
@@ -177,6 +177,6 @@ void dllist_set_free(struct dllist *_head, size_t _index, void *_elem);
 #define dllist_foreach(_head, _index, _elem)    \
     sllist_t *_head_ref = _head;                \
     size_t _index; void *_elem;                 \
-    for (_index = 0; (_head_ref != _head->next) ? _elem = _head->data, _head = _head->next : 0; _index++)
+    for (_index = 0; (_head_ref != _head->next) ? (_elem = _head->data), (_head = _head->next) : 0; _index++)
 
 #endif						   // WS_UTILS_H

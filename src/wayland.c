@@ -414,7 +414,7 @@ ecode_t wl_shm_pool_create(struct wl_shm_pool_data **r_shm_pool_data, struct wl_
 	int fd;
 
 	ecode_t code = create_shm_file(&fd, size);
-	if (!code) {
+	if (code) {
 		WS_LOGF(WS_SEV_WARN, "shm file failed.\n");
 		return WSE_WL_FDF;
 	}

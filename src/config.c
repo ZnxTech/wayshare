@@ -7,7 +7,7 @@ ecode_t get_default_config_path(char **r_config_file_path)
 		const char *config_home_file_path = "/.config/wayshare/config.json";
 		const char *home_dir_path;
 		ecode_t code = get_home_path(&home_dir_path);
-		if (!code)
+		if (code)
 			return code;
 
 		char *config_file_path =
@@ -93,7 +93,7 @@ ecode_t config_json_object_get_from_path(json_object_t *r_config_json, char *con
 	if (!config_file_path) {
 		path_alloced = true;
 		ecode_t code = get_default_config_path(&config_file_path);
-		if (!code)
+		if (code)
 			return code;
 	}
 
@@ -101,7 +101,7 @@ ecode_t config_json_object_get_from_path(json_object_t *r_config_json, char *con
 	struct stat buf;
 	if (stat(config_file_path, &buf) == -1) {
 		ecode_t code = prompt_default_config_file(config_file_path);
-		if (!code)
+		if (code)
 			return code;
 	}
 
@@ -155,7 +155,7 @@ ecode_t config_json_object_get_image_uploader_json_object(json_object_t *r_uploa
 	json_object_t uploader;
 	ecode_t code = config_json_object_get_uploader_json_object(&uploader, config_json,
 															   image_uplaoder_string_ex);
-	if (!uploader || !code)
+	if (!uploader || code)
 		return WSE_CONFIG_NJSON_OBJECT;
 
 	*r_uploader_json = uploader;
@@ -345,7 +345,7 @@ ecode_t config_format_string(char **r_formatted_string, const char *string)
 
 			char *cur_var_value;
 			ecode_t code = get_config_variable_string(&cur_var_value, cur_var_name);
-			if (!code) {
+			if (code) {
 				free(formatted_string);
 				return code;
 			}
