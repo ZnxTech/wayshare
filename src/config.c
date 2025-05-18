@@ -31,31 +31,32 @@ ecode_t get_default_config_path(char **r_config_file_path)
 
 ecode_t create_default_config_file(const char *config_file_path)
 {
-	const char *default_config =
-		"{\n"
-		"    \"wayshare\": {\n"
-		"        \"image_uploader\": \"uploder_name\"\n"
-		"    },\n"
-		"    \"screenshot\": {\n"
-		"        \"file_name\": \"{source}_{unix_time}\",\n"
-		"        \"file_local_dir\": \"{home}/Pictures/Screenshots\",\n"
-		"        \"file_format\": \"PNG\",\n"
-		"\n"
-		"        \"compress_toggle\": false,\n"
-		"        \"compress_format\": \"JPEG\",\n"
-		"        \"compress_min_kib\": 2048,\n"
-		"        \"compress_level\": 5\n"
-		"    },\n"
-		"    \"uploaders\": {\n"
-		"        \"uploder_name\": {\n"
-		"            \"upload_type\": \"POST\",\n"
-		"            \"upload_url\": \"https://api.imageuploder.sh/upload\",\n"
-		"            \"upload_querys\": {\n"
-		"                \"key\": \"R4nD0Mk3Ys7R1Ng\"\n"
-		"            },\n"
-		"            \"upload_headers\": {\n"
-		"\n"
-		"            },\n" "            \"file_url\": \"{json:url}\"\n" "        }\n" "    }\n" "}";
+	const char *default_config = "\
+	{																	\n\
+		\"wayshare\": {													\n\
+			\"image_uploader\": \"uploder_name\"						\n\
+		},																\n\
+		\"screenshot\": {												\n\
+			\"file_name\": \"$source$_$unix_time$\",					\n\
+			\"file_local_dir\": \"$home$/Pictures/Screenshots\",		\n\
+			\"file_format\": \"PNG\",									\n\
+			\"compress_toggle\": false,									\n\
+			\"compress_format\": \"JPEG\",								\n\
+			\"compress_min_kib\": 2048,									\n\
+			\"compress_level\": 5										\n\
+		},																\n\
+		\"uploaders\": {												\n\
+			\"imageuploder_sh\": {										\n\
+				\"upload_type\": \"POST\",								\n\
+				\"upload_url\": \"https://api.imageuploder.sh/upload\",	\n\
+				\"upload_querys\": {									\n\
+					\"key\": \"R4nD0Mk3Ys7R1Ng\"						\n\
+				},														\n\
+				\"upload_headers\": {},									\n\
+				\"file_url\": \"$json:url$\"							\n\
+			}															\n\
+		}																\n\
+	}																	\n";
 
 	char config_dir_path[strlen(config_file_path) + 1];
 	strcpy(config_dir_path, config_file_path);
@@ -139,7 +140,7 @@ ecode_t config_json_object_get_image_uploader_json_object(json_object_t *r_uploa
 	if (!wayshare)
 		return WSE_CONFIG_NJSON_OBJECT;
 
-	json_object_t image_uploader = json_object_object_get(config_json, "image_uploader");
+	json_object_t image_uploader = json_object_object_get(wayshare, "image_uploader");
 	if (!image_uploader)
 		return WSE_CONFIG_NJSON_OBJECT;
 
