@@ -13,7 +13,7 @@
 // NS_: not supported
 // _F:  fail/failed
 
-typedef int32_t ecode_t;
+typedef uint32_t ecode_t;
 
 #define WS_OK 0
 
