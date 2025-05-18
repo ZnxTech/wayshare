@@ -37,7 +37,7 @@ static void selector_init_layer_surface(struct selector_layer *layer)
 	layer->layer_surface =
 		zwlr_layer_shell_v1_get_layer_surface(wayland->wlr_layer_shell,
 											  layer->surface, layer->output_data->output,
-											  ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "selector");
+											  ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "ws_selection");
 	zwlr_layer_surface_v1_add_listener(layer->layer_surface, &layer_surface_listener, layer);
 	zwlr_layer_surface_v1_set_anchor(layer->layer_surface, SELECTOR_ANCHORS);
 	zwlr_layer_surface_v1_set_keyboard_interactivity(layer->layer_surface, 1);
@@ -104,6 +104,23 @@ static void buffer_render_rect_fill(uint32_t *buffer_data, struct rect buffer_ar
 	}
 }
 
+static void buffer_render_rect_border(uint32_t *buffer_data, struct rect buffer_area,
+									  struct rect draw_area, uint32_t color)
+{
+	uint32_t y_0 = draw_area.y - buffer_area.y;
+	uint32_t x_0 = draw_area.x - buffer_area.x;
+
+	for (uint32_t y = y_0; y < draw_area.height + y_0; y++) {
+		buffer_data[buffer_area.width * y + x_0] = color;
+		buffer_data[buffer_area.width * y + x_0 + draw_area.width - 1] = color;
+	}
+
+	for (uint32_t x = x_0; x < draw_area.width + x_0; x++) {
+		buffer_data[buffer_area.width * y_0 + x] = color;
+		buffer_data[buffer_area.width * (y_0 + draw_area.height - 1) + x] = color;
+	}
+}
+
 static void layer_render_background(struct selector_layer *layer)
 {
 	uint32_t *buffer_data = layer->current_buffer->data;
@@ -124,6 +141,7 @@ static void layer_render_selection(struct selector_layer *layer)
 		return;
 
 	buffer_render_rect_fill(buffer_data, buffer_area, selection_inter, 0x00000000);
+	buffer_render_rect_border(buffer_data, buffer_area, selection_inter, 0xff4488ff);
 }
 
 static struct wl_buffer_data *buffer_get_next(struct selector_layer *layer)
