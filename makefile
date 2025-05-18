@@ -14,13 +14,15 @@ wl_head := $(wl_prot:./wl_prot/%.xml=./build/wl_src/%.h)
 wl_obj  := $(wl_prot:./wl_prot/%.xml=./build/obj/%.o)
 
 # flags
-c_defs := -D WLR_USE_UNSTABLE
-c_libs := -l wayland-client -l curl -l json-c -l png -l xkbcommon
+c_defs := -DWLR_USE_UNSTABLE
+c_incs := -I./build/wl_src -I/usr/include/pixman-1
+c_libs := -lwayland-client -lcurl -ljson-c -lpixman-1 -lcairo -lpng -lxkbcommon
+c_warn := -Wall -Wno-error=incompatible-pointer-types
 
 all: ./build/bin/wayshare ./build/bin/wayshare-debug
 
-test: ./build/bin/wayshare-debug
-	./bin/wayshare-debug;
+run: ./build/bin/wayshare-debug
+	./build/bin/wayshare-debug;
 
 format:
 	@for f in $(c_src) $(c_head); do 				\
@@ -40,11 +42,11 @@ format:
 # code compilation
 $(c_obj): ./build/obj/%.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< -I ./build/wl_src -o ./$@ $(c_defs) -s
+	gcc -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -s
 
 $(c_obj_debug): ./build/obj/%-debug.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< -I ./build/wl_src -o ./$@ $(c_defs) -g -D DEBUG
+	gcc -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -g -DDEBUG
 
 $(wl_obj): ./build/obj/%.o: ./build/wl_src/%.c $(wl_head)
 	@mkdir ./build/obj -p
