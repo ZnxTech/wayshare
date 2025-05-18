@@ -2,6 +2,7 @@
 #define WS_SELECTOR_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <xkbcommon/xkbcommon.h>
 #include <wayland-cursor.h>
@@ -17,6 +18,8 @@
  * - impl selector window snapping, {SELECTOR_SELECTMODE_SNAP}.
  * - impl custom selector colors and styles.
  * - impl custom input from config file.
+ * - impl magnifying glass like util to have easier "perfect" selection.
+ * - impl cursor pixel adjustments with arrowkeys.
  * - improve selection buffer rendering performance.
  */
 
