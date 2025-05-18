@@ -9,11 +9,11 @@
 #include "cursor-shape-v1.h"
 #include "wlr-layer-shell-unstable-v1.h"
 #include "wlr-screencopy-unstable-v1.h"
+#include "cosmic-image-source-unstable-v1.h"
 #include "cosmic-screencopy-unstable-v2.h"
 
 #include "utils.h"
 #include "wayshare.h"
-#include "image.h"
 #include "logger.h"
 
 /**
@@ -33,6 +33,7 @@ struct wl_state {
 	struct wl_shm *shm;
 	struct zwlr_layer_shell_v1 *wlr_layer_shell;
 	struct zwlr_screencopy_manager_v1 *wlr_screencopy_manager;
+	struct zcosmic_output_image_source_manager_v1 *cosmic_output_image_source_manager;
 	struct zcosmic_screencopy_manager_v2 *cosmic_screencopy_manager;
 };
 
@@ -128,37 +129,5 @@ ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
 						 uint32_t stride, uint32_t format);
 
 ecode_t wl_buffer_free(struct wl_buffer_data *buffer_data);
-
-/**
- * TODO: 
- * rework wlr frames and screencopy to its own file.
- * */
-
-struct wlr_frame_data {
-	struct wl_state *state;
-	struct zwlr_screencopy_frame_v1 *frame;
-	struct wl_buffer_data *buffer_data;
-	struct rect region;
-	int32_t transform;
-	uint32_t *n_ready;
-	bool ready;
-};
-
-ecode_t wlr_frame_create(struct wlr_frame_data **r_frame_data, struct wl_state *state,
-						 struct wl_output_data *output_data, uint32_t cursor, uint32_t * n_ready);
-
-ecode_t wlr_frame_region_create(struct wlr_frame_data **r_frame_data, struct wl_state *state,
-								struct wl_output_data *output_data, struct rect region,
-								uint32_t cursor, uint32_t * n_ready);
-
-ecode_t wlr_frame_absolute_region_create(struct wlr_frame_data **r_frame_data,
-										 struct wl_state *state, struct wl_output_data *output_data,
-										 struct rect region, uint32_t cursor, uint32_t * n_ready);
-
-ecode_t wlr_frame_get_image(struct image *r_image, struct wlr_frame_data *frame_data);
-
-ecode_t wlr_frame_free(struct wlr_frame_data *frame_data);
-
-ecode_t image_wlr_screencopy(struct image *r_image, struct wl_state *state, struct rect region);
 
 #endif						   // WS_WAYLAND_H
