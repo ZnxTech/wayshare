@@ -1,5 +1,7 @@
 #include "post.h"
 
+#include "logger.h"
+
 static size_t response_write_callback(char *data, size_t data_size, size_t data_count, void *darray)
 {
 	const char null_byte = '\0';
@@ -8,7 +10,7 @@ static size_t response_write_callback(char *data, size_t data_size, size_t data_
 	darray_append((struct darray *)darray, &null_byte);
 }
 
-static ecode_t get_headers_slist(struct curl_slist **r_slist, json_object_t headers_json)
+static ecode_t get_headers_slist(struct curl_slist **r_slist, json_object *headers_json)
 {
 	struct curl_slist *slist = NULL;
 	json_object_object_foreach(headers_json, key_str, val_json) {
@@ -27,7 +29,7 @@ static ecode_t get_headers_slist(struct curl_slist **r_slist, json_object_t head
 	return WS_OK;
 }
 
-static ecode_t set_mime_forms(curl_mime *mime, json_object_t forms_json)
+static ecode_t set_mime_forms(curl_mime *mime, json_object *forms_json)
 {
 	json_object_object_foreach(forms_json, key_str, val_json) {
 		if (!json_object_is_type(val_json, json_type_string))
@@ -43,7 +45,7 @@ static ecode_t set_mime_forms(curl_mime *mime, json_object_t forms_json)
 	return WS_OK;
 }
 
-static ecode_t append_curl_url_querys(CURLU *url, json_object_t querys_json)
+static ecode_t append_curl_url_querys(CURLU *url, json_object *querys_json)
 {
 	json_object_object_foreach(querys_json, key_str, val_json) {
 		if (!json_object_is_type(val_json, json_type_string))
@@ -59,7 +61,7 @@ static ecode_t append_curl_url_querys(CURLU *url, json_object_t querys_json)
 	return WS_OK;
 }
 
-static ecode_t get_curl_url(CURLU **r_url, json_object_t url_json, json_object_t querys_json)
+static ecode_t get_curl_url(CURLU **r_url, json_object *url_json, json_object *querys_json)
 {
 	const char *uploader_url_str = json_object_get_string(url_json);
 	CURLU *url = curl_url();
@@ -72,10 +74,10 @@ static ecode_t get_curl_url(CURLU **r_url, json_object_t url_json, json_object_t
 	return WS_OK;
 }
 
-ecode_t request_generic_file(json_object_t *r_response_json, json_object_t uploader_json,
+ecode_t request_generic_file(json_object **r_response_json, json_object *uploader_json,
 							 void *file_data, size_t file_size, const char *file_name)
 {
-	json_object_t upload_method_json = json_object_object_get(uploader_json, "upload_method");
+	json_object *upload_method_json = json_object_object_get(uploader_json, "upload_method");
 
 	if (!json_object_is_type(upload_method_json, json_type_string))
 		return WSE_POST_NSETTING;
@@ -103,7 +105,7 @@ ecode_t request_generic_file(json_object_t *r_response_json, json_object_t uploa
 	return WS_OK;
 }
 
-ecode_t request_get(json_object_t *r_response_json, json_object_t uploader_json)
+ecode_t request_get(json_object **r_response_json, json_object *uploader_json)
 {
 	CURL *curl = curl_easy_init();
 	if (!curl)
@@ -114,7 +116,7 @@ ecode_t request_get(json_object_t *r_response_json, json_object_t uploader_json)
 		return WSE_POST_CURLF;
 
 	// set upload headers
-	json_object_t headers_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *headers_json = json_object_object_get(uploader_json, "upload_querys");
 	if (json_object_is_type(headers_json, json_type_object)) {
 		struct curl_slist *header_slist;
 		get_headers_slist(&header_slist, headers_json);
@@ -122,8 +124,8 @@ ecode_t request_get(json_object_t *r_response_json, json_object_t uploader_json)
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_slist);
 	}
 	// upload url and querys
-	json_object_t url_json = json_object_object_get(uploader_json, "upload_url");
-	json_object_t querys_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *url_json = json_object_object_get(uploader_json, "upload_url");
+	json_object *querys_json = json_object_object_get(uploader_json, "upload_querys");
 	if (!json_object_is_type(url_json, json_type_string)) {
 		curl_easy_cleanup(curl);
 		return WSE_POST_NSETTING;
@@ -151,7 +153,7 @@ ecode_t request_get(json_object_t *r_response_json, json_object_t uploader_json)
 		return WSE_POST_REQUESTF;
 
 	// json parsing
-	json_object_t response_json;
+	json_object *response_json;
 	response_json = json_tokener_parse((const char *)response_data->data);
 	darray_free(response_data);
 	if (!response_json)
@@ -161,7 +163,7 @@ ecode_t request_get(json_object_t *r_response_json, json_object_t uploader_json)
 	return WS_OK;
 }
 
-ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader_json,
+ecode_t request_post_file(json_object **r_response_json, json_object *uploader_json,
 						  void *file_data, size_t file_size, const char *file_name)
 {
 	CURL *curl = curl_easy_init();
@@ -173,7 +175,7 @@ ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader
 		return WSE_POST_CURLF;
 
 	// set file form
-	json_object_t file_form_json = json_object_object_get(uploader_json, "upload_file_form");
+	json_object *file_form_json = json_object_object_get(uploader_json, "upload_file_form");
 	if (!file_form_json && json_object_get_type(file_form_json) != json_type_string) {
 		curl_easy_cleanup(curl);
 		return WSE_POST_NSETTING;
@@ -186,7 +188,7 @@ ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader
 	curl_mime_filename(mime_part, file_name);
 
 	// set upload headers
-	json_object_t headers_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *headers_json = json_object_object_get(uploader_json, "upload_querys");
 	if (json_object_is_type(headers_json, json_type_object)) {
 		struct curl_slist *header_slist;
 		get_headers_slist(&header_slist, headers_json);
@@ -194,13 +196,13 @@ ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_slist);
 	}
 	// set upload forms
-	json_object_t forms_json = json_object_object_get(uploader_json, "upload_forms");
+	json_object *forms_json = json_object_object_get(uploader_json, "upload_forms");
 	if (json_object_is_type(forms_json, json_type_object))
 		set_mime_forms(mime, forms_json);
 
 	// upload url and querys
-	json_object_t url_json = json_object_object_get(uploader_json, "upload_url");
-	json_object_t querys_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *url_json = json_object_object_get(uploader_json, "upload_url");
+	json_object *querys_json = json_object_object_get(uploader_json, "upload_querys");
 	if (!json_object_is_type(url_json, json_type_string)) {
 		curl_easy_cleanup(curl);
 		return WSE_POST_NSETTING;
@@ -228,7 +230,7 @@ ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader
 		return WSE_POST_REQUESTF;
 
 	// json parsing
-	json_object_t response_json;
+	json_object *response_json;
 	response_json = json_tokener_parse((const char *)response_data->data);
 	darray_free(response_data);
 	if (!response_json)
@@ -238,7 +240,7 @@ ecode_t request_post_file(json_object_t *r_response_json, json_object_t uploader
 	return WS_OK;
 }
 
-ecode_t request_put_file(json_object_t *r_response_json, json_object_t uploader_json,
+ecode_t request_put_file(json_object **r_response_json, json_object *uploader_json,
 						 void *file_data, size_t file_size, const char *file_name)
 {
 	CURL *curl = curl_easy_init();
@@ -250,7 +252,7 @@ ecode_t request_put_file(json_object_t *r_response_json, json_object_t uploader_
 		return WSE_POST_CURLF;
 
 	// set file form
-	json_object_t file_form_json = json_object_object_get(uploader_json, "upload_file_form");
+	json_object *file_form_json = json_object_object_get(uploader_json, "upload_file_form");
 	if (!file_form_json && json_object_get_type(file_form_json) != json_type_string) {
 		curl_easy_cleanup(curl);
 		return WSE_POST_NSETTING;
@@ -263,7 +265,7 @@ ecode_t request_put_file(json_object_t *r_response_json, json_object_t uploader_
 	curl_mime_filename(mime_part, file_name);
 
 	// set upload headers
-	json_object_t headers_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *headers_json = json_object_object_get(uploader_json, "upload_querys");
 	if (json_object_is_type(headers_json, json_type_object)) {
 		struct curl_slist *header_slist;
 		get_headers_slist(&header_slist, headers_json);
@@ -271,13 +273,13 @@ ecode_t request_put_file(json_object_t *r_response_json, json_object_t uploader_
 			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header_slist);
 	}
 	// set upload forms
-	json_object_t forms_json = json_object_object_get(uploader_json, "upload_forms");
+	json_object *forms_json = json_object_object_get(uploader_json, "upload_forms");
 	if (json_object_is_type(forms_json, json_type_object))
 		set_mime_forms(mime, forms_json);
 
 	// upload url and querys
-	json_object_t url_json = json_object_object_get(uploader_json, "upload_url");
-	json_object_t querys_json = json_object_object_get(uploader_json, "upload_querys");
+	json_object *url_json = json_object_object_get(uploader_json, "upload_url");
+	json_object *querys_json = json_object_object_get(uploader_json, "upload_querys");
 	if (!json_object_is_type(url_json, json_type_string)) {
 		curl_easy_cleanup(curl);
 		return WSE_POST_NSETTING;
@@ -306,7 +308,7 @@ ecode_t request_put_file(json_object_t *r_response_json, json_object_t uploader_
 		return WSE_POST_REQUESTF;
 
 	// json parsing
-	json_object_t response_json;
+	json_object *response_json;
 	response_json = json_tokener_parse((const char *)response_data->data);
 	darray_free(response_data);
 	if (!response_json)
