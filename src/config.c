@@ -1,378 +1,313 @@
 #include "config.h"
 
-ecode_t get_default_config_path(char **r_config_file_path)
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+
+#include <errno.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+#include "utils.h"
+
+static ecode_t get_config_path(char **r_config_path)
 {
-	char *config_dir_path = getenv("XDG_CONFIG_HOME");
-	if (!config_dir_path) {
-		const char *config_home_file_path = "/.config/wayshare/config.json";
-		const char *home_dir_path;
-		ecode_t code = get_home_path(&home_dir_path);
-		if (code)
-			return code;
+	const char *home_suffix = "/.config/wayhsare/config.json";
+	const char *xdg_config_suffix = "/wayhsare/config.json";
+	char *path = NULL;
 
-		char *config_file_path =
-			(char *)malloc(strlen(home_dir_path) + strlen(config_home_file_path) + 1);
+	const char *xdg_config = getenv("XDG_CONFIG_HOME");
+	if (!xdg_config) {		   /* no $XDG_CONFIG_HOME envar, try "$HOME/.config". */
+		const char *home;
+		ecode_t code;
+		code = get_home_path(&home);
+		if (!code)
+			return WSE_CONFIG_NHOME;
 
-		strcpy(config_file_path, home_dir_path);
-		strcat(config_file_path, config_home_file_path);
-		*r_config_file_path = config_file_path;
-		return WS_OK;
+		size_t strlen;
+		strlen = snprintf(NULL, 0, "%s%s", home, home_suffix);
+		path = malloc(strlen + 1);
+		snprintf(path, strlen + 1, "%s%s", home, home_suffix);
+
 	} else {
-		const char *config_config_file_path = "/wayshare/config.json";
-		char *config_file_path =
-			(char *)malloc(strlen(config_dir_path) + strlen(config_config_file_path) + 1);
-
-		strcpy(config_file_path, config_dir_path);
-		strcat(config_file_path, config_config_file_path);
-		*r_config_file_path = config_file_path;
-		return WS_OK;
+		size_t strlen;
+		strlen = snprintf(NULL, 0, "%s%s", xdg_config, xdg_config_suffix);
+		path = malloc(strlen + 1);
+		snprintf(path, strlen + 1, "%s%s", xdg_config, xdg_config_suffix);
 	}
-}
 
-ecode_t create_default_config_file(const char *config_file_path)
-{
-	const char *default_config = "\
-	{																	\n\
-		\"wayshare\": {													\n\
-			\"image_uploader\": \"uploder_name\"						\n\
-		},																\n\
-		\"screenshot\": {												\n\
-			\"file_name\": \"$source$_$unix_time$\",					\n\
-			\"file_local_dir\": \"$home$/Pictures/Screenshots\",		\n\
-			\"file_format\": \"PNG\",									\n\
-			\"compress_toggle\": false,									\n\
-			\"compress_format\": \"JPEG\",								\n\
-			\"compress_min_kib\": 2048,									\n\
-			\"compress_level\": 5										\n\
-		},																\n\
-		\"uploaders\": {												\n\
-			\"imageuploder_sh\": {										\n\
-				\"upload_type\": \"POST\",								\n\
-				\"upload_url\": \"https://api.imageuploder.sh/upload\",	\n\
-				\"upload_querys\": {									\n\
-					\"key\": \"R4nD0Mk3Ys7R1Ng\"						\n\
-				},														\n\
-				\"upload_headers\": {},									\n\
-				\"file_url\": \"$json:url$\"							\n\
-			}															\n\
-		}																\n\
-	}																	\n";
-
-	char config_dir_path[strlen(config_file_path) + 1];
-	strcpy(config_dir_path, config_file_path);
-	*strrchr(config_dir_path, '/') = '\0';	// change last '/' to the null byte '\0'.
-
-	mkdir(config_dir_path, S_IRWXU | S_IRWXG | S_IRWXO);
-	int config_fd = open(config_file_path, O_WRONLY | O_CREAT | O_EXCL);
-	write(config_fd, (void *)default_config, strlen(default_config));
-	close(config_fd);
-	chmod(config_file_path, S_IRWXU | S_IRWXG | S_IRWXO);
-
+	*r_config_path = path;
 	return WS_OK;
 }
 
-ecode_t prompt_default_config_file(const char *config_file_path)
+ecode_t get_config_json(struct json_object **r_config_json, const char *custom_path)
 {
-	printf("No configuration file found at: %s,\n"
-		   "do you wish to create a default configuration file at that location? [y/N]: ",
-		   config_file_path);
+	char *config_path = NULL;
+	get_config_path(&config_path);
+	struct json_object *config_json;
 
-	char reply;
-	scanf("%c", &reply);
-	fflush(stdin);
-	if (reply == 'y' || reply == 'Y') {
-		create_default_config_file(config_file_path);
-		return WS_OK;
-	} else {
-		return WSE_CONFIG_NCONFIG_FILE;
-	}
-}
+	/* check custom --config path. */
+	if ((config_json = json_object_from_file(custom_path)) != NULL)
+		*r_config_json = config_json;
 
-ecode_t config_json_object_get_from_path(json_object_t *r_config_json, char *config_file_path)
-{
-	bool path_alloced = false;
-	if (!config_file_path) {
-		path_alloced = true;
-		ecode_t code = get_default_config_path(&config_file_path);
-		if (code)
-			return code;
-	}
+	/* check local user .config dir. */
+	else if ((config_json = json_object_from_file(config_path)) != NULL)
+		*r_config_json = config_json;
 
-	WS_LOGF(WS_SEV_INFO, "attempting to open config file: %s\n", config_file_path);
-	struct stat buf;
-	if (stat(config_file_path, &buf) == -1) {
-		ecode_t code = prompt_default_config_file(config_file_path);
-		if (code)
-			return code;
-	}
+	/* check global system etc dir. */
+	else if ((config_json = json_object_from_file("/etc/wayshare/config.json")) != NULL)
+		*r_config_json = config_json;
 
-	json_object *config_json = json_object_from_file(config_file_path);
-	if (path_alloced)
-		free(config_file_path);
+	if (config_path)
+		free(config_path);
 
 	if (!config_json)
-		return WSE_CONFIG_JSON_PARSEF;
-
-	*r_config_json = config_json;
-	return WS_OK;
+		return WSE_CONFIG_CONFIG_FILEF;
+	else
+		return WS_OK;
 }
 
-ecode_t config_json_object_get_uploader_json_object(json_object_t *r_uploader_json,
-													json_object_t config_json,
-													const char *uploader_name)
+ecode_t get_uploader_json_name(struct json_object **r_uploader_json,
+							   struct json_object *config_json, const char *name)
 {
-	json_object_t uploaders = json_object_object_get(config_json, "uploaders");
-	if (!uploaders)
+	struct json_object *uploaders_json;
+	uploaders_json = json_object_object_get(config_json, "uploaders");
+	if (!uploaders_json || !json_object_is_type(uploaders_json, json_type_object))
 		return WSE_CONFIG_NJSON_OBJECT;
 
-	json_object_t uploader = json_object_object_get(uploaders, uploader_name);
-	if (!uploader)
+	struct json_object *uploader_json;
+	uploader_json = json_object_object_get(config_json, name);
+	if (!uploader_json || !json_object_is_type(uploader_json, json_type_object))
 		return WSE_CONFIG_NJSON_OBJECT;
 
-	*r_uploader_json = uploader;
+	*r_uploader_json = uploader_json;
 	return WS_OK;
 }
 
-ecode_t config_json_object_get_image_uploader_json_object(json_object_t *r_uploader_json,
-														  json_object_t config_json)
+static const char *get_type_key(enum uploader_type type)
 {
-	json_object_t wayshare = json_object_object_get(config_json, "wayshare");
-	if (!wayshare)
+	switch (type) {
+	case UPLOADER_TYPE_OTHER:
+		return "other_uploader";
+
+	case UPLOADER_TYPE_TEXT:
+		return "text_uploader";
+
+	case UPLOADER_TYPE_IMAGE:
+		return "image_uploader";
+
+	case UPLOADER_TYPE_AUDIO:
+		return "audio_uploader";
+
+	case UPLOADER_TYPE_VIDEO:
+		return "video_uploader";
+
+	default:
+		return "other_uploader";
+	}
+}
+
+ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
+							   struct json_object *config_json, enum uploader_type type)
+{
+	struct json_object *wayshare_json;
+	wayshare_json = json_object_object_get(config_json, "wayshare");
+	if (!wayshare_json || !json_object_is_type(wayshare_json, json_type_object))
 		return WSE_CONFIG_NJSON_OBJECT;
 
-	json_object_t image_uploader = json_object_object_get(wayshare, "image_uploader");
-	if (!image_uploader)
+	struct json_object *uploader_name_json;
+	uploader_name_json = json_object_object_get(config_json, get_type_key(type));
+	if (!uploader_name_json || !json_object_is_type(uploader_name_json, json_type_string))
 		return WSE_CONFIG_NJSON_OBJECT;
 
-	if (json_object_get_type(image_uploader) != json_type_string)
-		return -1;
+	const char *uploader_name;
+	uploader_name = json_object_get_string(uploader_name_json);
+	struct json_object *uploader_json;
+	ecode_t code;
+	if ((code = get_uploader_json_name(&uploader_json, config_json, uploader_name)))
+		return code;
 
-	const char *image_uplaoder_string = json_object_get_string(image_uploader);
-	const uint64_t image_uplaoder_string_len = json_object_get_string_len(image_uploader);
-
-	char image_uplaoder_string_ex[image_uplaoder_string_len];
-	strncpy(image_uplaoder_string_ex, image_uplaoder_string, image_uplaoder_string_len);
-
-	json_object_t uploader;
-	ecode_t code = config_json_object_get_uploader_json_object(&uploader, config_json,
-															   image_uplaoder_string_ex);
-	if (!uploader || code)
-		return WSE_CONFIG_NJSON_OBJECT;
-
-	*r_uploader_json = uploader;
+	*r_uploader_json = uploader_json;
 	return WS_OK;
 }
 
-ecode_t json_object_get_from_json_path(json_object_t *r_json_value, const char *json_path,
-									   json_object_t json)
+static inline bool is_prefix_invalid(const char *prefix, size_t spn)
 {
-	json_object_t cur_object = json;
-	uint8_t cur_object_type = 0;	// 0 - key, 1 - index
-	size_t cur_object_start = 0;
-	size_t cur_object_len;
+	return spn < 1 || spn > 3
+		|| (spn == 2) ? strncmp(prefix, ".[", 2) && strncmp(prefix, "[\"", 2) : 0
+		|| (spn == 3) ? strncmp(prefix, ".[\"", 3) : 0;
+}
 
-	for (size_t i_char = 0; i_char < strlen(json_path) + 1; i_char++) {
-		if (json_path[i_char] != '.' && json_path[i_char] != '[' && json_path[i_char] != '\0')
-			continue;
+static inline bool is_suffix_invalid(const char *suffix, size_t spn, char type)
+{
+	return spn > 2
+		|| (type == '[') ? spn != 1 || strncmp(suffix, "]", 1) : 0
+		|| (type == '"') ? spn != 2 || strncmp(suffix, "\"]", 2) : 0;
+}
 
-		cur_object_len = i_char - cur_object_start - cur_object_type;
-		char cur_object_name[cur_object_len + 1];
-		strncpy(cur_object_name, (json_path + cur_object_start), cur_object_len);
-		cur_object_name[cur_object_len] = '\0';
+static ecode_t handle_token(struct json_object **trv_json, char *token, const char type)
+{
+	if (*trv_json == NULL)
+		return WSE_CONFIG_NJSON_OBJECT;	/* json error. */
 
-		cur_object = (cur_object_type)
-			? json_object_object_get(cur_object, cur_object_name)
-			: json_object_array_get_idx(cur_object, strtoull(cur_object_name, NULL, 10));
+	if (type == '[') {
+		long index;
+		index = strtol(token, NULL, 10);
+		if (errno == ERANGE)
+			return WSE_CONFIG_JSON_PATHF;	/* out of range error. */
 
-		if (!cur_object)
-			return WSE_CONFIG_NJSON_OBJECT;
+		if (!json_object_is_type(*trv_json, json_type_array))
+			return WSE_CONFIG_JSON_PATHF;	/* json error. */
 
-		if (json_path[i_char] == '\0')
-			break;
+		unsigned long arrlen;
+		arrlen = json_object_array_length(*trv_json);
 
-		cur_object_start = i_char + cur_object_type + 1;
-		cur_object_type = (json_path[i_char] == '[');
+		/* modulate to allow negative indexs in the syntax. */
+		index = ((index % arrlen) + arrlen) % arrlen;
+		*trv_json = json_object_array_get_idx(*trv_json, index);
+	} else {
+		if (!json_object_is_type(*trv_json, json_type_object))
+			return WSE_CONFIG_JSON_PATHF;	/* json error. */
+
+		*trv_json = json_object_object_get(*trv_json, token);
 	}
 
-	*r_json_value = cur_object;
 	return WS_OK;
 }
 
-ecode_t string_insert_segment(char **r_fin_string, const char *dest_string, size_t position,
-							  const char *src_string)
+ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_json,
+						   const char *path)
 {
-	const size_t dest_len = strlen(dest_string);
-	const size_t src_len = strlen(src_string);
-	const size_t fin_len = dest_len + src_len;
-	if (dest_len < position)
-		return -1;
+	char pathbuf[strlen(path)];
+	strcpy(pathbuf, path);
 
-	char *fin_string = (char *)malloc(fin_len + 1);
-	strncpy(fin_string, dest_string, position);
-	fin_string[position] = '\0';
-	strcat(fin_string, src_string);
-	strcat(fin_string, (dest_string + position));
+	struct json_object *trv_json = src_json;
+	char *c_token = NULL;
+	char *n_token = pathbuf;
+	char *p_ptr;
+	char p_char;
 
-	*r_fin_string = fin_string;
-	return WS_OK;
-}
+	while (n_token != NULL) {
+		c_token = n_token;
+		size_t c_prespn = strspn(c_token, ".[\"");
+		if (is_prefix_invalid(c_token, c_prespn))
+			return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
 
-ecode_t string_remove_segment(char **r_fin_string, const char *dest_string, size_t position,
-							  size_t length)
-{
-	const size_t dest_len = strlen(dest_string);
-	const size_t fin_len = dest_len - length;
-	if (dest_len < position)
-		return -1;
+		c_token += c_prespn;
+		char c_type = c_token[-1];
 
-	if (dest_len - position < length)
-		return -1;
+		/* check for closing quatation mark/bracket. */
+		if (c_type == '.')
+			n_token = strpbrk(c_token, ".[");
+		else if (c_type == '[')
+			n_token = strchr(c_token, ']');
+		else if (c_type == '"')
+			n_token = strchr(c_token, '"');
+		else
+			return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
 
-	char *fin_string = (char *)malloc(fin_len + 1);
-	strncpy(fin_string, dest_string, position);
-	fin_string[position] = '\0';
-	strcat(fin_string, (dest_string + position + length));
+		/* check for a valid suffix. */
+		size_t c_sufspn;
+		if (c_type != '.') {
+			if (n_token == NULL)
+				return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
 
-	*r_fin_string = fin_string;
-	return WS_OK;
-}
-
-ecode_t get_config_variable_string(char **r_value, const char *name)
-{
-	if (strcmp(name, "") == 0) {
-		char *value_str = (char *)malloc(2);
-		strcpy(value_str, "$");
-
-		*r_value = value_str;
-		return WS_OK;
-	}
-
-	if (strcmp(name, "user_name") == 0) {
-		const char *value_str;
-		get_user_name(&value_str);
-
-		*r_value = strdup(value_str);
-		return WS_OK;
-	}
-
-	if (strcmp(name, "home_dir") == 0) {
-		const char *value_str;
-		get_home_path(&value_str);
-
-		*r_value = strdup(value_str);
-		return WS_OK;
-	}
-
-	if (strcmp(name, "unix_time") == 0) {
-		time_t unix_time = time(NULL);
-
-		size_t value_str_len = snprintf(NULL, 0, "%llu", unix_time);
-		char *value_str = (char *)malloc(value_str_len + 1);
-		snprintf(value_str, value_str_len + 1, "%llu", unix_time);
-
-		*r_value = value_str;
-		return WS_OK;
-	}
-
-	if (strcmp(name, "utc_time") == 0) {
-		time_t unix_time = time(NULL);
-		struct tm *utc_time = gmtime(&unix_time);
-
-		size_t value_str_len = snprintf(NULL, 0, "%.4u_%.2u_%.2u",
-										utc_time->tm_year + 1900, utc_time->tm_mon + 1,
-										utc_time->tm_mday);
-
-		char *value_str = (char *)malloc(value_str_len + 1);
-		snprintf(value_str, value_str_len + 1, "%.4u_%.2u_%.2u",
-				 utc_time->tm_year + 1900, utc_time->tm_mon + 1, utc_time->tm_mday);
-
-		*r_value = value_str;
-		return WS_OK;
-	}
-
-	if (strcmp(name, "local_time") == 0) {
-		time_t unix_time = time(NULL);
-		struct tm *utc_time = localtime(&unix_time);
-
-		size_t value_str_len = snprintf(NULL, 0, "%.4u_%.2u_%.2u",
-										utc_time->tm_year + 1900, utc_time->tm_mon + 1,
-										utc_time->tm_mday);
-
-		char *value_str = (char *)malloc(value_str_len + 1);
-		snprintf(value_str, value_str_len + 1, "%.4u_%.2u_%.2u",
-				 utc_time->tm_year + 1900, utc_time->tm_mon + 1, utc_time->tm_mday);
-
-		*r_value = value_str;
-		return WS_OK;
-	}
-	// default
-	char *value_str = (char *)malloc(1);
-	strcpy(value_str, "");
-
-	*r_value = value_str;
-	return WSE_CONFIG_NVAR_VALUE;
-}
-
-ecode_t config_format_string(char **r_formatted_string, const char *string)
-{
-	char *formatted_string = strdup(string);
-	bool is_within_var = false;
-	int64_t total_var_delta = 0;
-	size_t cur_var_start;
-	size_t cur_var_end;
-	size_t cur_var_len;
-
-	for (size_t i_char = 0; i_char < strlen(string); i_char++) {
-		const int64_t i_char_delta = i_char + total_var_delta;
-
-		if (formatted_string[i_char_delta] != '$')
-			continue;
-
-		if (!is_within_var) {
-			is_within_var = true;
-			cur_var_start = i_char_delta;
-			continue;
+			c_sufspn = strspn(n_token, "\"]");
+			if (is_suffix_invalid(n_token, c_sufspn, c_type))
+				return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
 		}
 
-		if (is_within_var) {
-			is_within_var = false;
-			cur_var_end = i_char_delta;
-			cur_var_len = cur_var_end - cur_var_start + 1;
-
-			size_t cur_var_name_len = cur_var_len - 2;	// remove the 2 '$'s for the variable name length.
-			char cur_var_name[cur_var_name_len + 1];
-			strncpy(cur_var_name, (formatted_string + cur_var_start + 1), cur_var_name_len);
-			cur_var_name[cur_var_name_len] = '\0';
-
-			char *cur_var_value;
-			ecode_t code = get_config_variable_string(&cur_var_value, cur_var_name);
-			if (code) {
-				free(formatted_string);
-				return code;
-			}
-
-			const uint32_t cur_var_value_len = strlen(cur_var_value);
-			char *new_formatted_string;
-			string_remove_segment(&new_formatted_string, formatted_string, cur_var_start,
-								  cur_var_len);
-			free(formatted_string);
-			formatted_string = new_formatted_string;
-			string_insert_segment(&new_formatted_string, formatted_string, cur_var_start,
-								  cur_var_value);
-			free(formatted_string);
-			formatted_string = new_formatted_string;
-
-			free(cur_var_value);
-			total_var_delta += cur_var_value_len - cur_var_len;
-			continue;
+		if (n_token != NULL) {
+			/* terminate the token and save the prev state. */
+			p_ptr = n_token;
+			p_char = n_token[0];
+			n_token[0] = '\0';
 		}
+
+		ecode_t code;
+		if ((code = handle_token(&trv_json, c_token, c_type)))
+			return code;
+
+		/* return to prev state. */
+		if (n_token != NULL)
+			p_ptr[0] = p_char;
+
+		/* move from current suffix to next prefix if a suffix exists. */
+		if (c_type != '.')
+			n_token += c_sufspn;
 	}
 
-	if (is_within_var) {
-		free(formatted_string);
-		return WSE_CONFIG_NVAR_CLOSE;	// no closing $ for var.
+	*r_json = trv_json;
+	return WS_OK;
+}
+
+static ecode_t get_variable_value(const char **r_value, const char *key)
+{
+	if (strcmp(key, "") == 0) {
+		char *value = malloc(strlen("$") + 1);
+		*r_value = strcpy(value, "$");
+	} else if (strcmp(key, "hey") == 0) {
+		char *value = malloc(strlen("hey!") + 1);
+		*r_value = strcpy(value, "hey!");
+	} else
+		return WSE_CONFIG_NVAR_VALUE;
+
+	return WS_OK;
+}
+
+ecode_t format_variable_string(char **r_str, const char *vstr, struct json_object *response_json)
+{
+	/* parse string. */
+	char vstrbuf[strlen(vstr) + 1];
+	strcpy(vstrbuf, vstr);
+
+	/* write string. */
+	int32_t t_delta = 0;
+	char *strbuf = malloc(strlen(vstr) + 1);
+	strcpy(strbuf, vstr);
+
+	char *c_token = NULL;
+	char *n_token = strchr(vstrbuf, '$');
+
+	while (n_token != NULL) {
+		c_token = n_token;
+		c_token++;
+		n_token = strchr(c_token, '$');
+		if (n_token == NULL)
+			return WSE_CONFIG_NVAR_CLOSE;	/* syntax error. */
+
+		n_token[0] = '\0';
+		n_token++;
+		n_token = strchr(n_token, '$');
+
+		const char *value = NULL;
+		if (get_variable_value(&value, c_token))
+			return WSE_CONFIG_NVAR_VALUE;	/* invalid variable key. */
+
+		size_t keylen = strlen(c_token);
+		size_t vallen = strlen(value);
+		int32_t delta = vallen - keylen - 2;	/* -2 for the '$'s. */
+		t_delta += delta;
+
+		/* realloc to new +delta size. */
+		if (delta > 0)
+			strbuf = realloc(strbuf, strlen(strbuf) + delta + 1);
+
+		/* get pointer to the current variable in the write string. */
+		char *c_strbuf = strbuf + t_delta + (c_token - vstrbuf);
+
+		/* move string segment from after the variable to after the future value. */
+		memmove(c_strbuf + vallen, c_strbuf + keylen + 2, strlen(c_strbuf + keylen + 2) + 1);
+		memmove(c_strbuf, value, strlen(value));
+
+		/* realloc to new -delta size. */
+		if (delta < 0)
+			strbuf = realloc(strbuf, strlen(strbuf) + delta + 1);
+
+		if (value)
+			free(value);
 	}
 
-	*r_formatted_string = formatted_string;
+	*r_str = strbuf;
 	return WS_OK;
 }
