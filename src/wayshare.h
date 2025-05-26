@@ -43,8 +43,8 @@ typedef uint32_t ecode_t;
 #define WSE_CONFIG_CONFIG_FILEF 0x0601	// failed to retrive json config file.
 #define WSE_CONFIG_NJSON_OBJECT 0x0602	// missing object inside the json config file.
 #define WSE_CONFIG_JSON_PATHF   0x0602	// json path is invalid and failed to parse.
-#define WSE_CONFIG_NVAR_VALUE   0x0604  // missing value for variable string variable.
-#define WSE_CONFIG_NVAR_CLOSE   0x0605  // variable string variable missing closing '$'.
+#define WSE_CONFIG_NVAR_VALUE   0x0604	// missing value for variable string variable.
+#define WSE_CONFIG_NVAR_CLOSE   0x0605	// variable string variable missing closing '$'.
 
 #define WSE_SELECTOR_NWLR_LAYER 0x0700
 #define WSE_SELECTOR_NSELECTION 0x0701
