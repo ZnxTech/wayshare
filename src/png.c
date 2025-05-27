@@ -14,12 +14,8 @@ static void png_event_flush(png_struct *png)
 	/* left empty. */
 }
 
-ecode_t png_write_from_pixman(struct darray *write_buffer, pixman_image_t *image,
-							  int32_t comp_level)
+ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, int32_t comp_level)
 {
-	if (!write_buffer)
-		return WSE_PNG_BUFFERF;
-
 	int image_width = pixman_image_get_width(image);
 	int image_height = pixman_image_get_height(image);
 	int image_stride = pixman_image_get_stride(image);
@@ -33,7 +29,11 @@ ecode_t png_write_from_pixman(struct darray *write_buffer, pixman_image_t *image
 	if (!png_info)
 		return WSE_PNG_INFO_INITF;
 
-	png_set_write_fn(png_handle, write_buffer, png_event_write, png_event_flush);
+	/* init write buffer after errors. */
+	struct darray *buffer;
+	buffer = darray_init(sizeof(uint8_t), 1);
+
+	png_set_write_fn(png_handle, buffer, png_event_write, png_event_flush);
 
 	png_set_IHDR(png_handle, png_info, (uint32_t) image_width, (uint32_t) image_height,
 				 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
@@ -63,5 +63,6 @@ ecode_t png_write_from_pixman(struct darray *write_buffer, pixman_image_t *image
 	if (png_handle)
 		png_destroy_write_struct(&png_handle, NULL);
 
+	*r_buffer = buffer;
 	return WS_OK;
 }

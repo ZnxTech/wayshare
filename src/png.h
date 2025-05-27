@@ -6,7 +6,6 @@
 #include "wayshare.h"
 #include "utils.h"
 
-ecode_t png_write_from_pixman(struct darray *write_buffer, pixman_image_t * image,
-							  int32_t comp_level);
+ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, int32_t comp_level);
 
 #endif						   // WS_PNG_H
