@@ -26,8 +26,12 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 		return WSE_PNG_STRUCT_INITF;
 
 	png_info *png_info = png_create_info_struct(png_handle);
-	if (!png_info)
+	if (!png_info) {
+		/* cleanup handle if defined. */
+		if (png_handle)
+			png_destroy_write_struct(&png_handle, NULL);
 		return WSE_PNG_INFO_INITF;
+	}
 
 	/* init write buffer after errors. */
 	struct darray *buffer;
