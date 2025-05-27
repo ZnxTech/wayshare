@@ -49,4 +49,8 @@ typedef uint32_t ecode_t;
 #define WSE_SELECTOR_NWLR_LAYER 0x0700
 #define WSE_SELECTOR_NSELECTION 0x0701
 
+#define WSE_PNG_BUFFERF         0x0800	// invalid write buffer darray.
+#define WSE_PNG_STRUCT_INITF    0x0801	// libpng failed to create png_struct.
+#define WSE_PNG_INFO_INITF      0x0801	// libpng failed to create png_info.
+
 #endif						   // WS_WAYSHARE_H

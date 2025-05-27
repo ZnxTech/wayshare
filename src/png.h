@@ -2,14 +2,11 @@
 #define WS_PNG_H
 
 #include <pixman.h>
-#include <png.h>
 
-struct png_image {
-	png_struct *handle;
-	png_info *info;
-	struct darray *data;
-};
+#include "wayshare.h"
+#include "utils.h"
 
-struct png_image *png_create_from_pixman(pixman_image_t * image, uint32_t compression);
+ecode_t png_write_from_pixman(struct darray *write_buffer, pixman_image_t * image,
+							  int32_t comp_level);
 
 #endif						   // WS_PNG_H
