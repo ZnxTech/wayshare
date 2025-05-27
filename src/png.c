@@ -41,8 +41,12 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 
 	png_write_info(png_handle, png_info);
 
-	/* compression and filters, compression levels must be bewteen 0-9 or -1 (default). */
-	png_set_compression_level(png_handle, comp_level);
+	/* calculate compression 0..9 from wayshare compression 0..255 */
+	int32_t comp = comp_level / 28.33f;
+	if (comp > 9)
+		comp = 9;			   /* safe guard. */
+
+	png_set_compression_level(png_handle, comp);
 	if (comp_level == 0)
 		/* no need for filters if png has no compression. */
 		png_set_filter(png_handle, PNG_FILTER_TYPE_BASE, PNG_NO_FILTERS);
