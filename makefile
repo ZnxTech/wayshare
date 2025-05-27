@@ -16,7 +16,7 @@ wl_obj  := $(wl_prot:./wl_prot/%.xml=./build/obj/%.o)
 # flags
 c_defs := -DWLR_USE_UNSTABLE
 c_incs := -I./build/wl_src -I/usr/include/pixman-1
-c_libs := -lwayland-client -lcurl -ljson-c -lpixman-1 -lcairo -lpng -lxkbcommon
+c_libs := -lwayland-client -lcurl -ljson-c -lpixman-1 -lcairo -lpng -lxkbcommon -ljpeg
 c_warn := -Wall -Wno-error=incompatible-pointer-types
 
 all: ./build/bin/wayshare ./build/bin/wayshare-debug
