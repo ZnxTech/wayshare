@@ -33,24 +33,24 @@ format:
 # code linking
 ./build/bin/wayshare: $(c_obj) $(wl_obj)
 	@mkdir ./build/bin -p
-	gcc $(c_obj) $(wl_obj) -o $@ $(c_defs) $(c_libs)
+	clang $(c_obj) $(wl_obj) -o $@ $(c_defs) $(c_libs)
 
 ./build/bin/wayshare-debug: $(c_obj_debug) $(wl_obj)
 	@mkdir ./build/bin -p
-	gcc $(c_obj_debug) $(wl_obj) -o $@ $(c_defs) $(c_libs)
+	clang $(c_obj_debug) $(wl_obj) -o $@ $(c_defs) $(c_libs)
 
 # code compilation
 $(c_obj): ./build/obj/%.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -s
+	clang -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -s
 
 $(c_obj_debug): ./build/obj/%-debug.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -g -DDEBUG
+	clang -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -g -DDEBUG
 
 $(wl_obj): ./build/obj/%.o: ./build/wl_src/%.c $(wl_head)
 	@mkdir ./build/obj -p
-	gcc -c $< -o ./$@
+	clang -c $< -o ./$@
 
 # wayland source creation via wayland-scanner
 $(wl_src): ./build/wl_src/%.c: ./wl_prot/%.xml
