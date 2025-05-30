@@ -25,10 +25,7 @@ run: ./build/bin/wayshare-debug
 	./build/bin/wayshare-debug;
 
 format:
-	@for f in $(c_src) $(c_head); do 				\
-        indent $$f -o $$f -linux 					\
-		-l100 -di0 -i4 -ts4 -il0 -c32 -cd32 -cp32;	\
-    done
+	clang-format -i $(c_src) $(c_head)
 
 # code linking
 ./build/bin/wayshare: $(c_obj) $(wl_obj)
