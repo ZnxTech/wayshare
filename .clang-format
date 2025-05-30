@@ -92,7 +92,9 @@ ForEachMacros: [
   darray_foreach,
   darray_foreach_i,
   darray_foreach_f,
-  dllink_foreach
+  dllink_foreach,
+  json_object_object_foreach,
+  json_object_object_foreachC
 ]
 IncludeBlocks: Preserve
 IndentCaseBlocks: false
