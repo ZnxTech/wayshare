@@ -32,7 +32,7 @@ ecode_t jpeg_write_from_pixman(uint8_t **r_data, size_t *r_size, pixman_image_t 
 	/* calculate quality 0..100 from wayshare compression 255..0 */
 	int32_t quality = (255 - comp_level) / 2.25f;
 	if (quality > 100)
-		quality = 100;		   /* safe guard. */
+		quality = 100; /* safe guard. */
 
 	jpeg_set_defaults(&cinfo);
 	jpeg_set_quality(&cinfo, quality, TRUE);

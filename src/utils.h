@@ -1,21 +1,21 @@
 #ifndef WS_UTILS_H
 #define WS_UTILS_H
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
-#include <time.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <pwd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <limits.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <pwd.h>
 
 #include "wayshare.h"
 
@@ -110,10 +110,10 @@ ecode_t get_home_path(const char **r_home_dir_path);
  * a basic dynamic array struct.
  */
 struct darray {
-	void *data;				   // the array pointer.
-	size_t size;			   // the byte size of each element in the array.
-	size_t count;			   // the amount of elements that data currently has, stack only.
-	size_t reserve;			   // the amount of elements that data can store.
+	void *data;		// the array pointer.
+	size_t size;	// the byte size of each element in the array.
+	size_t count;	// the amount of elements that data currently has, stack only.
+	size_t reserve; // the amount of elements that data can store.
 };
 
 struct darray *darray_init(size_t _size, size_t _reserve);
@@ -155,9 +155,9 @@ void darray_set(struct darray *_array, size_t _pos, const void *_elem);
  * a basic doubley linked list struct.
  */
 struct dllist {
-	void *data;				   // the contained data.
-	struct dllist *prev;	   // the prev node.
-	struct dllist *next;	   // the next node.
+	void *data;			 // the contained data.
+	struct dllist *prev; // the prev node.
+	struct dllist *next; // the next node.
 };
 
 struct dllist *dllist_init(void *_elem);
@@ -179,4 +179,4 @@ void dllist_set_free(struct dllist *_head, size_t _index, void *_elem);
     size_t _index; void *_elem;                 \
     for (_index = 0; (_head_ref != _head->next) ? (_elem = _head->data), (_head = _head->next) : 0; _index++)
 
-#endif						   // WS_UTILS_H
+#endif // WS_UTILS_H

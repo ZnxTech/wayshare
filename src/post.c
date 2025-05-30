@@ -13,7 +13,7 @@ static size_t response_write_callback(char *data, size_t data_size, size_t data_
 static ecode_t get_headers_slist(struct curl_slist **r_slist, json_object *headers_json)
 {
 	struct curl_slist *slist = NULL;
-	json_object_object_foreach(headers_json, key_str, val_json) {
+	json_object_object_foreach (headers_json, key_str, val_json) {
 		if (!json_object_is_type(val_json, json_type_string))
 			continue;
 
@@ -31,7 +31,7 @@ static ecode_t get_headers_slist(struct curl_slist **r_slist, json_object *heade
 
 static ecode_t set_mime_forms(curl_mime *mime, json_object *forms_json)
 {
-	json_object_object_foreach(forms_json, key_str, val_json) {
+	json_object_object_foreach (forms_json, key_str, val_json) {
 		if (!json_object_is_type(val_json, json_type_string))
 			continue;
 
@@ -47,7 +47,7 @@ static ecode_t set_mime_forms(curl_mime *mime, json_object *forms_json)
 
 static ecode_t append_curl_url_querys(CURLU *url, json_object *querys_json)
 {
-	json_object_object_foreach(querys_json, key_str, val_json) {
+	json_object_object_foreach (querys_json, key_str, val_json) {
 		if (!json_object_is_type(val_json, json_type_string))
 			continue;
 
@@ -240,8 +240,8 @@ ecode_t request_post_file(json_object **r_response_json, json_object *uploader_j
 	return WS_OK;
 }
 
-ecode_t request_put_file(json_object **r_response_json, json_object *uploader_json,
-						 void *file_data, size_t file_size, const char *file_name)
+ecode_t request_put_file(json_object **r_response_json, json_object *uploader_json, void *file_data,
+						 size_t file_size, const char *file_name)
 {
 	CURL *curl = curl_easy_init();
 	if (!curl)

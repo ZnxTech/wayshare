@@ -1,20 +1,20 @@
 #ifndef WS_WAYLAND_H
 #define WS_WAYLAND_H
 
-#include <string.h>
 #include <stdint.h>
+#include <string.h>
 
-#include <wayland-client.h>
-#include "xdg-output-unstable-v1.h"
+#include "cosmic-image-source-unstable-v1.h"
+#include "cosmic-screencopy-unstable-v2.h"
 #include "cursor-shape-v1.h"
 #include "wlr-layer-shell-unstable-v1.h"
 #include "wlr-screencopy-unstable-v1.h"
-#include "cosmic-image-source-unstable-v1.h"
-#include "cosmic-screencopy-unstable-v2.h"
+#include "xdg-output-unstable-v1.h"
+#include <wayland-client.h>
 
+#include "logger.h"
 #include "utils.h"
 #include "wayshare.h"
-#include "logger.h"
 
 /**
  * <struct wl_state>
@@ -50,6 +50,7 @@ ecode_t wl_state_disconnect(struct wl_state *state);
 struct wl_output_data {
 	struct wl_state *state;
 	struct wl_output *output;
+
 	union {
 		struct {
 			int32_t x;
@@ -59,6 +60,7 @@ struct wl_output_data {
 		};
 		struct rect area;
 	};
+
 	int32_t transform;
 	int32_t scale_factor;
 };
@@ -98,14 +100,14 @@ struct wl_shm_pool_data {
 	void *data;
 };
 
-ecode_t wl_shm_pool_create(struct wl_shm_pool_data **r_shm_pool_data,
-						   struct wl_state *state, size_t size);
+ecode_t wl_shm_pool_create(struct wl_shm_pool_data **r_shm_pool_data, struct wl_state *state,
+						   size_t size);
 
 ecode_t wl_shm_pool_free(struct wl_shm_pool_data *shm_pool_data);
 
 /**
  * <struct wl_buffer_data>
- * container struct for <struct wl_buffer *> as-well as storing it's size, format, data pointer 
+ * container struct for <struct wl_buffer *> as-well as storing it's size, format, data pointer
  * and parent shm pool variables that were given when the buffer was created client-side or
  * given from the server-side.
  * additionally, when freeing a buffer, if the parent shm pool has no other buffers created
@@ -130,4 +132,4 @@ ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
 
 ecode_t wl_buffer_free(struct wl_buffer_data *buffer_data);
 
-#endif						   // WS_WAYLAND_H
+#endif // WS_WAYLAND_H

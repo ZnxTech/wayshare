@@ -2,11 +2,11 @@
 
 struct rect rect_transpose(struct rect rect)
 {
-	return (struct rect) {
+	return (struct rect){
 		.x = rect.x,
 		.y = rect.y,
 		.width = rect.height,
-		.height = rect.width
+		.height = rect.width,
 	};
 }
 
@@ -17,11 +17,11 @@ struct rect rect_intersect(struct rect rect_1, struct rect rect_2)
 	int32_t x2 = min(rect_1.x + rect_1.width, rect_2.x + rect_2.width);
 	int32_t y2 = min(rect_1.y + rect_1.height, rect_2.y + rect_2.height);
 
-	return (struct rect) {
+	return (struct rect){
 		.x = x1,
 		.y = y1,
 		.width = x2 - x1,
-		.height = y2 - y1
+		.height = y2 - y1,
 	};
 }
 
@@ -32,37 +32,33 @@ struct rect rect_contain(struct rect rect_1, struct rect rect_2)
 	int32_t x2 = max(rect_1.x + rect_1.width, rect_2.x + rect_2.width);
 	int32_t y2 = max(rect_1.y + rect_1.height, rect_2.y + rect_2.height);
 
-	return (struct rect) {
+	return (struct rect){
 		.x = x1,
 		.y = y1,
 		.width = x2 - x1,
-		.height = y2 - y1
+		.height = y2 - y1,
 	};
 }
 
 bool rect_is_intersecting(struct rect rect_1, struct rect rect_2)
 {
-	return (rect_1.x < rect_2.x + rect_2.width)
-		&& (rect_2.x < rect_1.x + rect_1.width)
-		&& (rect_1.y < rect_2.y + rect_2.height)
-		&& (rect_2.y < rect_1.y + rect_1.height);
+	return (rect_1.x < rect_2.x + rect_2.width) && (rect_2.x < rect_1.x + rect_1.width)
+		   && (rect_1.y < rect_2.y + rect_2.height) && (rect_2.y < rect_1.y + rect_1.height);
 }
 
 bool rect_is_contained(struct rect rect_1, struct rect rect_2)
 {
-	return (rect_1.x < rect_2.x)
-		&& (rect_2.x + rect_2.width < rect_1.x + rect_1.width)
-		&& (rect_1.y < rect_2.y)
-		&& (rect_2.y + rect_2.height < rect_1.y + rect_1.height);
+	return (rect_1.x < rect_2.x) && (rect_2.x + rect_2.width < rect_1.x + rect_1.width)
+		   && (rect_1.y < rect_2.y) && (rect_2.y + rect_2.height < rect_1.y + rect_1.height);
 }
 
 struct rect rect_validate(struct rect rect)
 {
-	return (struct rect) {
+	return (struct rect){
 		.x = (rect.width) ? rect.x : rect.x + rect.width,
 		.y = (rect.height) ? rect.y : rect.y + rect.height,
 		.width = abs(rect.width),
-		.height = abs(rect.height)
+		.height = abs(rect.height),
 	};
 }
 
@@ -73,11 +69,11 @@ bool rect_is_valid(struct rect rect)
 
 struct rect rect_unanchor(struct anchored_rect arect)
 {
-	return (struct rect) {
+	return (struct rect){
 		.x = min(arect.anchor_x, arect.vector_x),
 		.y = min(arect.anchor_y, arect.vector_y),
 		.width = abs(arect.anchor_x - arect.vector_x),
-		.height = abs(arect.anchor_y - arect.vector_y)
+		.height = abs(arect.anchor_y - arect.vector_y),
 	};
 }
 

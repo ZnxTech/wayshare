@@ -19,7 +19,7 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	int image_width = pixman_image_get_width(image);
 	int image_height = pixman_image_get_height(image);
 	int image_stride = pixman_image_get_stride(image);
-	uint8_t *data = (uint8_t *) pixman_image_get_data(image);
+	uint8_t *data = (uint8_t *)pixman_image_get_data(image);
 
 	png_struct *png_handle = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_handle)
@@ -39,8 +39,8 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 
 	png_set_write_fn(png_handle, buffer, png_event_write, png_event_flush);
 
-	png_set_IHDR(png_handle, png_info, (uint32_t) image_width, (uint32_t) image_height,
-				 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
+	png_set_IHDR(png_handle, png_info, (uint32_t)image_width, (uint32_t)image_height, 8,
+				 PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
 				 PNG_FILTER_TYPE_BASE);
 
 	png_write_info(png_handle, png_info);
@@ -48,7 +48,7 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	/* calculate compression 0..9 from wayshare compression 0..255 */
 	int32_t comp = comp_level / 28.33f;
 	if (comp > 9)
-		comp = 9;			   /* safe guard. */
+		comp = 9; /* safe guard. */
 
 	png_set_compression_level(png_handle, comp);
 	if (comp_level == 0)

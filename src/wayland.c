@@ -1,13 +1,13 @@
 #include "wayland.h"
 
-// +----------------------------+
-// | wayland output event calls |
-// +----------------------------+
+static void null_func()
+{
+	/* left empty. */
+}
 
-static void wl_output_event_geometry(void *data, struct wl_output *wl_output,
-									 int32_t x, int32_t y, int32_t width_mm, int32_t height_mm,
-									 int32_t subpixel, const char *make, const char *model,
-									 int32_t transform)
+static void wl_output_event_geometry(void *data, struct wl_output *wl_output, int32_t x, int32_t y,
+									 int32_t width_mm, int32_t height_mm, int32_t subpixel,
+									 const char *make, const char *model, int32_t transform)
 {
 	struct wl_output_data *output_data = data;
 	output_data->x = x;
@@ -15,17 +15,12 @@ static void wl_output_event_geometry(void *data, struct wl_output *wl_output,
 	output_data->transform = transform;
 }
 
-static void wl_output_event_mode(void *data, struct wl_output *wl_output,
-								 uint32_t flags, int32_t width, int32_t height, int32_t refresh)
+static void wl_output_event_mode(void *data, struct wl_output *wl_output, uint32_t flags,
+								 int32_t width, int32_t height, int32_t refresh)
 {
 	struct wl_output_data *output_data = data;
 	output_data->width = width;
 	output_data->height = height;
-}
-
-static void wl_output_event_done(void *data, struct wl_output *wl_output)
-{
-
 }
 
 static void wl_output_event_scale(void *data, struct wl_output *wl_output, int32_t factor)
@@ -34,24 +29,14 @@ static void wl_output_event_scale(void *data, struct wl_output *wl_output, int32
 	output_data->scale_factor = factor;
 }
 
-static void wl_output_event_name(void *data, struct wl_output *wl_output, const char *name)
-{
-
-}
-
-static void wl_output_event_description(void *data, struct wl_output *wl_output,
-										const char *description)
-{
-
-}
-
-static const struct wl_output_listener output_listener = {
+const static struct wl_output_listener output_listener = {
 	.geometry = wl_output_event_geometry,
 	.mode = wl_output_event_mode,
-	.done = wl_output_event_done,
 	.scale = wl_output_event_scale,
-	.name = wl_output_event_name,
-	.description = wl_output_event_description
+	/* unused: */
+	.done = null_func,
+	.name = null_func,
+	.description = null_func,
 };
 
 static void wl_buffer_event_release(void *data, struct wl_buffer *wl_buffer)
@@ -60,8 +45,8 @@ static void wl_buffer_event_release(void *data, struct wl_buffer *wl_buffer)
 	buffer_data->busy = false;
 }
 
-static const struct wl_buffer_listener buffer_listener = {
-	.release = wl_buffer_event_release
+const static struct wl_buffer_listener buffer_listener = {
+	.release = wl_buffer_event_release,
 };
 
 static void wl_seat_event_capabilities(void *data, struct wl_seat *wl_seat, uint32_t capabilities)
@@ -70,19 +55,11 @@ static void wl_seat_event_capabilities(void *data, struct wl_seat *wl_seat, uint
 	seat_data->capabilities = capabilities;
 }
 
-static void wl_seat_event_name(void *data, struct wl_seat *wl_seat, const char *name)
-{
-
-}
-
-static const struct wl_seat_listener seat_listener = {
+const static struct wl_seat_listener seat_listener = {
 	.capabilities = wl_seat_event_capabilities,
-	.name = wl_seat_event_name
+	/* unused: */
+	.name = null_func,
 };
-
-// +------------------------+
-// | xdg output event calls |
-// +------------------------+
 
 static void xdg_output_event_logical_position(void *data, struct zxdg_output_v1 *zxdg_output_v1,
 											  int32_t x, int32_t y)
@@ -100,44 +77,23 @@ static void xdg_output_event_logical_size(void *data, struct zxdg_output_v1 *zxd
 	output_data->height = height;
 }
 
-static void xdg_output_event_done(void *data, struct zxdg_output_v1 *zxdg_output_v1)
-{
-
-}
-
-static void xdg_output_event_name(void *data, struct zxdg_output_v1 *zxdg_output_v1,
-								  const char *name)
-{
-
-}
-
-static void xdg_output_event_description(void *data, struct zxdg_output_v1 *zxdg_output_v1,
-										 const char *description)
-{
-
-}
-
-static const struct zxdg_output_v1_listener xdg_output_listener = {
+const static struct zxdg_output_v1_listener xdg_output_listener = {
 	.logical_position = xdg_output_event_logical_position,
 	.logical_size = xdg_output_event_logical_size,
-	.done = xdg_output_event_done,
-	.name = xdg_output_event_name,
-	.description = xdg_output_event_description
+	/* unused: */
+	.done = null_func,
+	.name = null_func,
+	.description = null_func,
 };
 
-// +------------------------------+
-// | wayland registry event calls |
-// +------------------------------+
-
-static void wl_registry_event_global(void *data, struct wl_registry *registry,
-									 uint32_t name, const char *interface, uint32_t version)
+static void wl_registry_event_global(void *data, struct wl_registry *registry, uint32_t name,
+									 const char *interface, uint32_t version)
 {
-
 	if (strcmp(interface, wl_compositor_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "wl_compositor found.\n");
 		struct wl_state *state = data;
-		state->compositor = wl_registry_bind(state->registry, name,
-											 &wl_compositor_interface, version);
+		state->compositor =
+			wl_registry_bind(state->registry, name, &wl_compositor_interface, version);
 	}
 
 	if (strcmp(interface, wl_output_interface.name) == 0) {
@@ -198,34 +154,29 @@ static void wl_registry_event_global(void *data, struct wl_registry *registry,
 	if (strcmp(interface, zcosmic_output_image_source_manager_v1_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "cosmic_output_image_source_manager found.\n");
 		struct wl_state *state = data;
-		state->cosmic_screencopy_manager =
-			wl_registry_bind(state->registry, name,
-							 &zcosmic_output_image_source_manager_v1_interface, version);
+		state->cosmic_screencopy_manager = wl_registry_bind(
+			state->registry, name, &zcosmic_output_image_source_manager_v1_interface, version);
 	}
 
 	if (strcmp(interface, zcosmic_screencopy_manager_v2_interface.name) == 0) {
 		WS_LOGF(WS_SEV_INFO, "cosmic_screencopy_manager found.\n");
 		struct wl_state *state = data;
-		state->cosmic_screencopy_manager =
-			wl_registry_bind(state->registry, name,
-							 &zcosmic_screencopy_manager_v2_interface, version);
+		state->cosmic_screencopy_manager = wl_registry_bind(
+			state->registry, name, &zcosmic_screencopy_manager_v2_interface, version);
 	}
 }
 
-static void wl_registry_event_global_remove(void *data, struct wl_registry *registry, uint32_t name)
-{
-
-}
-
-static const struct wl_registry_listener registry_listener = {
-.global = wl_registry_event_global,.global_remove = wl_registry_event_global_remove};
+const static struct wl_registry_listener registry_listener = {
+	.global = wl_registry_event_global,
+	/* unused: */
+	.global_remove = null_func,
+};
 
 static ecode_t wl_output_get_logistical(struct wl_state *state, struct wl_output_data *output_data)
 {
 	if (state->xdg_output_manager != NULL) {
 		struct zxdg_output_v1 *xdg_output =
-			zxdg_output_manager_v1_get_xdg_output(state->xdg_output_manager,
-												  output_data->output);
+			zxdg_output_manager_v1_get_xdg_output(state->xdg_output_manager, output_data->output);
 		zxdg_output_v1_add_listener(xdg_output, &xdg_output_listener, output_data);
 		return WS_OK;
 	} else {
@@ -259,7 +210,7 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 	}
 
 	wl_registry_add_listener(state->registry, &registry_listener, state);
-	wl_display_roundtrip(state->display);	/* listen to registry events. */
+	wl_display_roundtrip(state->display); /* listen to registry events. */
 
 	if (state->outputs->count == 0) {
 		WS_LOGF(WS_SEV_ERR, "no wl_outputs were found.\n");
@@ -268,10 +219,10 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 
 	/* get logictical output values. */
 	struct wl_output_data *output_data;
-	darray_foreach(state->outputs, output_data)
+	darray_foreach (state->outputs, output_data)
 		wl_output_get_logistical(state, output_data);
 
-	wl_display_roundtrip(state->display);	/* listen to xdg output events. */
+	wl_display_roundtrip(state->display); /* listen to xdg output events. */
 
 	*r_state = state;
 	return WS_OK;
@@ -280,15 +231,15 @@ ecode_t wl_state_connect(struct wl_state **r_state, const char *name)
 ecode_t wl_state_disconnect(struct wl_state *state)
 {
 	struct wl_output_data *output_data;
-	darray_foreach(state->outputs, output_data)
+	darray_foreach (state->outputs, output_data)
 		if (output_data != NULL)
-		wl_output_free(output_data);
+			wl_output_free(output_data);
 	darray_free(state->outputs);
 
 	struct wl_seat_data *seat_data;
-	darray_foreach(state->seats, seat_data)
+	darray_foreach (state->seats, seat_data)
 		if (seat_data != NULL)
-		wl_seat_free(seat_data);
+			wl_seat_free(seat_data);
 	darray_free(state->seats);
 
 	if (state->registry != NULL)
@@ -392,8 +343,8 @@ ecode_t wl_shm_pool_free(struct wl_shm_pool_data *shm_pool_data)
 }
 
 ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
-						 struct wl_shm_pool_data *shm_pool_data, uint32_t width,
-						 uint32_t height, uint32_t stride, uint32_t format)
+						 struct wl_shm_pool_data *shm_pool_data, uint32_t width, uint32_t height,
+						 uint32_t stride, uint32_t format)
 {
 	struct wl_buffer_data *buffer_data;
 	buffer_data = calloc(sizeof(struct wl_buffer_data), 1);
@@ -403,9 +354,8 @@ ecode_t wl_buffer_create(struct wl_buffer_data **r_buffer_data,
 
 	buffer_data->state = shm_pool_data->state;
 	buffer_data->ref_shm_pool_data = shm_pool_data;
-	buffer_data->buffer = wl_shm_pool_create_buffer(shm_pool_data->shm_pool,
-													shm_pool_data->used_size,
-													width, height, stride, format);
+	buffer_data->buffer = wl_shm_pool_create_buffer(
+		shm_pool_data->shm_pool, shm_pool_data->used_size, width, height, stride, format);
 	buffer_data->width = width;
 	buffer_data->height = height;
 	buffer_data->stride = stride;

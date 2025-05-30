@@ -15,7 +15,6 @@ static void selector_end_selection(struct selector_state *state);
 static void selector_quit_selection(struct selector_state *state);
 
 static void selector_handle_anchormode(struct selector_state *state, uint32_t key_state);
-/* --- */
 
 static void layer_surface_event_configure(void *data,
 										  struct zwlr_layer_surface_v1 *zwlr_layer_surface_v1,
@@ -27,17 +26,16 @@ static void layer_surface_event_configure(void *data,
 	layer->configured = true;
 }
 
-static const struct zwlr_layer_surface_v1_listener layer_surface_listener = {
-	.configure = layer_surface_event_configure
+const static struct zwlr_layer_surface_v1_listener layer_surface_listener = {
+	.configure = layer_surface_event_configure,
 };
 
 static void selector_init_layer_surface(struct selector_layer *layer)
 {
 	struct wl_state *wayland = layer->state->wayland;
-	layer->layer_surface =
-		zwlr_layer_shell_v1_get_layer_surface(wayland->wlr_layer_shell,
-											  layer->surface, layer->output_data->output,
-											  ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "ws_selection");
+	layer->layer_surface = zwlr_layer_shell_v1_get_layer_surface(
+		wayland->wlr_layer_shell, layer->surface, layer->output_data->output,
+		ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "ws_selection");
 	zwlr_layer_surface_v1_add_listener(layer->layer_surface, &layer_surface_listener, layer);
 	zwlr_layer_surface_v1_set_anchor(layer->layer_surface, SELECTOR_ANCHORS);
 	zwlr_layer_surface_v1_set_keyboard_interactivity(layer->layer_surface, 1);
@@ -67,7 +65,7 @@ ecode_t selector_layer_create(struct selector_layer **r_layer, struct selector_s
 	layer->state = state;
 	layer->output_data = output_data;
 	layer->surface = wl_compositor_create_surface(state->wayland->compositor);
-	selector_init_layer_surface(layer);	/* creates and configs {layer::layer_surface}. */
+	selector_init_layer_surface(layer); /* creates and configs {layer::layer_surface}. */
 	selector_init_buffers(layer);
 
 	*r_layer = layer;
@@ -179,8 +177,8 @@ static void wl_callback_event_done(void *data, struct wl_callback *wl_callback,
 	wl_callback_destroy(wl_callback);
 }
 
-static const struct wl_callback_listener callback_listener = {
-	.done = wl_callback_event_done
+const static struct wl_callback_listener callback_listener = {
+	.done = wl_callback_event_done,
 };
 
 static void layer_request_frame(struct selector_layer *layer)
@@ -194,7 +192,7 @@ static struct selector_layer *layer_from_surface(struct selector_state *state,
 												 struct wl_surface *surface)
 {
 	struct selector_layer *layer;
-	darray_foreach(state->layers, layer) {
+	darray_foreach (state->layers, layer) {
 		if (layer->surface == surface)
 			return layer;
 	}
@@ -205,7 +203,7 @@ void selector_request_frame(struct selector_state *state)
 {
 	struct rect selection_area = rect_unanchor(state->selection);
 	struct selector_layer *layer;
-	darray_foreach(state->layers, layer) {
+	darray_foreach (state->layers, layer) {
 		struct rect layer_area = layer->output_data->area;
 		if (rect_is_intersecting(layer_area, selection_area))
 			layer_request_frame(layer);
@@ -223,10 +221,11 @@ static void wl_pointer_event_enter(void *data, struct wl_pointer *wl_pointer, ui
 	struct wl_state *wayland = pointer->state->wayland;
 	if (wayland->cursor_shape_manager != NULL) {
 		struct wp_cursor_shape_device_v1 *device;
-		device = wp_cursor_shape_manager_v1_get_pointer(wayland->cursor_shape_manager,
-														pointer->pointer);
-		wp_cursor_shape_device_v1_set_shape(device, serial,
-											WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CROSSHAIR);
+		/* clang-format off */ /* long ass wayland functions... */
+		device = wp_cursor_shape_manager_v1_get_pointer(wayland->cursor_shape_manager, pointer->pointer);
+		wp_cursor_shape_device_v1_set_shape(device, serial, WP_CURSOR_SHAPE_DEVICE_V1_SHAPE_CROSSHAIR);
+		/* clang-format off */
+
 		wp_cursor_shape_device_v1_destroy(device);
 	} else {
 		/* TODO: pointer surface/shape. */
@@ -299,7 +298,7 @@ static void wl_pointer_event_button(void *data, struct wl_pointer *wl_pointer, u
 	}
 }
 
-static const struct wl_pointer_listener pointer_listener = {
+const static struct wl_pointer_listener pointer_listener = {
 	.enter = wl_pointer_event_enter,
 	.leave = wl_pointer_event_leave,
 	.motion = wl_pointer_event_motion,
@@ -311,11 +310,11 @@ static const struct wl_pointer_listener pointer_listener = {
 	.axis_stop = null_func,
 	.axis_discrete = null_func,
 	.axis_value120 = null_func,
-	.axis_relative_direction = null_func
+	.axis_relative_direction = null_func,
 };
 
-ecode_t selector_pointer_create(struct selector_pointer **r_pointer,
-								struct selector_state *state, struct wl_seat_data *seat_data)
+ecode_t selector_pointer_create(struct selector_pointer **r_pointer, struct selector_state *state,
+								struct wl_seat_data *seat_data)
 {
 	struct selector_pointer *pointer;
 	pointer = calloc(sizeof(struct selector_pointer), 1);
@@ -349,9 +348,8 @@ static void wl_keyboard_event_keymap(void *data, struct wl_keyboard *wl_keyboard
 			return;
 
 		keyboard->xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
-		keyboard->xkb_keymap = xkb_keymap_new_from_string(keyboard->xkb_context, buffer,
-														  XKB_KEYMAP_FORMAT_TEXT_V1,
-														  XKB_KEYMAP_COMPILE_NO_FLAGS);
+		keyboard->xkb_keymap = xkb_keymap_new_from_string(keyboard->xkb_context,
+			buffer, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
 		keyboard->xkb_state = xkb_state_new(keyboard->xkb_keymap);
 		break;
 	}
@@ -388,14 +386,14 @@ static void wl_keyboard_event_key(void *data, struct wl_keyboard *wl_keyboard, u
 	}
 }
 
-static const struct wl_keyboard_listener keyboard_listener = {
+const static struct wl_keyboard_listener keyboard_listener = {
 	.keymap = wl_keyboard_event_keymap,
 	.key = wl_keyboard_event_key,
 	/* unused: */
 	.enter = null_func,
 	.leave = null_func,
 	.modifiers = null_func,
-	.repeat_info = null_func
+	.repeat_info = null_func,
 };
 
 ecode_t selector_keyboard_create(struct selector_keyboard **r_keyboard,
@@ -446,7 +444,7 @@ static void selector_cancel_selection(struct selector_state *state)
 static void selector_end_selection(struct selector_state *state)
 {
 	if (!state->has_selection)
-		return;				   /* selector has no selection area, can not end. */
+		return; /* selector has no selection area, can not end. */
 
 	state->mode = SELECTOR_SELECTMODE_NONE;
 	state->running = false;
@@ -487,7 +485,7 @@ static void selector_handle_anchormode(struct selector_state *state, uint32_t ke
 static void selector_init_inputs(struct selector_state *state)
 {
 	struct wl_seat_data *seat_data;
-	darray_foreach(state->wayland->seats, seat_data) {
+	darray_foreach (state->wayland->seats, seat_data) {
 		if (seat_data->capabilities & WL_SEAT_CAPABILITY_POINTER) {
 			struct selector_pointer *pointer;
 			selector_pointer_create(&pointer, state, seat_data);
@@ -511,7 +509,7 @@ ecode_t selector_init_layers(struct selector_state *state)
 		return WSE_SELECTOR_NWLR_LAYER;
 
 	struct wl_output_data *output_data;
-	darray_foreach(state->wayland->outputs, output_data) {
+	darray_foreach (state->wayland->outputs, output_data) {
 		struct selector_layer *layer;
 		selector_layer_create(&layer, state, output_data);
 		darray_append(state->layers, &layer);
@@ -545,7 +543,7 @@ ecode_t selector_create(struct selector_state **r_selector, struct wl_state *way
 ecode_t selector_apply(struct rect *r_selection, struct selector_state *selector)
 {
 	struct selector_layer *layer;
-	darray_foreach(selector->layers, layer)
+	darray_foreach (selector->layers, layer)
 		layer_send_frame(layer);
 
 	selector->running = true;
@@ -556,8 +554,7 @@ ecode_t selector_apply(struct rect *r_selection, struct selector_state *selector
 	if (!selector->has_selection)
 		return WSE_SELECTOR_NSELECTION;
 
-	WS_LOGF(WS_SEV_INFO, "selection: %i,%i %ix%i\n",
-			selector->selection.anchor_x,
+	WS_LOGF(WS_SEV_INFO, "selection: %i,%i %ix%i\n", selector->selection.anchor_x,
 			selector->selection.anchor_y,
 			abs(selector->selection.anchor_x - selector->selection.vector_x),
 			abs(selector->selection.anchor_y - selector->selection.vector_y));
@@ -569,17 +566,17 @@ ecode_t selector_apply(struct rect *r_selection, struct selector_state *selector
 ecode_t selector_free(struct selector_state *selector)
 {
 	struct selector_layer *layer;
-	darray_foreach(selector->layers, layer)
+	darray_foreach (selector->layers, layer)
 		selector_layer_free(layer);
 	darray_free(selector->layers);
 
 	struct selector_pointer *pointer;
-	darray_foreach(selector->pointers, pointer)
+	darray_foreach (selector->pointers, pointer)
 		selector_pointer_free(pointer);
 	darray_free(selector->pointers);
 
 	struct selector_keyboard *keyboard;
-	darray_foreach(selector->keyboards, keyboard)
+	darray_foreach (selector->keyboards, keyboard)
 		selector_keyboard_free(keyboard);
 	darray_free(selector->keyboards);
 

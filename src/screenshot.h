@@ -5,9 +5,9 @@
 
 #include <pixman.h>
 
-#include "wayshare.h"
 #include "utils.h"
 #include "wayland.h"
+#include "wayshare.h"
 
 /**
  * TODO:
@@ -86,8 +86,8 @@ struct screenshot_state {
 	uint32_t n_buffered;
 	uint32_t n_ready;
 	/* screecopy frames. */
-	struct darray *wlr_frames; /* darray<struct wlr_frame_data *> */
-	struct darray *cosmic_frames;	/* darray<struct cosmic_frame_data *> */
+	struct darray *wlr_frames;	  /* darray<struct wlr_frame_data *> */
+	struct darray *cosmic_frames; /* darray<struct cosmic_frame_data *> */
 };
 
 ecode_t screenshot_create_output(struct screenshot_state **r_screenshot, struct wl_state *wayland,
@@ -96,8 +96,8 @@ ecode_t screenshot_create_output(struct screenshot_state **r_screenshot, struct 
 ecode_t screenshot_create_region(struct screenshot_state **r_screenshot, struct wl_state *wayland,
 								 struct rect region);
 
-ecode_t screenshot_capture(pixman_image_t ** r_image, struct screenshot_state *screenshot);
+ecode_t screenshot_capture(pixman_image_t **r_image, struct screenshot_state *screenshot);
 
 ecode_t screenshot_free(struct screenshot_state *screenshot);
 
-#endif						   // WS_SCREENSHOT_H
+#endif // WS_SCREENSHOT_H

@@ -53,4 +53,4 @@ typedef uint32_t ecode_t;
 #define WSE_PNG_STRUCT_INITF    0x0801	// libpng failed to create png_struct.
 #define WSE_PNG_INFO_INITF      0x0801	// libpng failed to create png_info.
 
-#endif						   // WS_WAYSHARE_H
+#endif // WS_WAYSHARE_H

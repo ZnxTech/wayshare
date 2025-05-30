@@ -26,4 +26,4 @@ ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_
 
 ecode_t format_variable_string(char **r_str, const char *vstr, struct json_object *response_json);
 
-#endif						   // WS_CONFIG_H
+#endif // WS_CONFIG_H

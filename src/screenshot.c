@@ -178,7 +178,7 @@ static void wlr_frame_event_failed(void *data,
 	frame_data->ready = false;
 }
 
-static const struct zwlr_screencopy_frame_v1_listener wlr_frame_listener = {
+const static struct zwlr_screencopy_frame_v1_listener wlr_frame_listener = {
 	.buffer = wlr_frame_event_buffer,
 	.buffer_done = wlr_frame_event_buffer_done,
 	.flags = wlr_frame_event_flags,
@@ -186,8 +186,7 @@ static const struct zwlr_screencopy_frame_v1_listener wlr_frame_listener = {
 	.failed = wlr_frame_event_failed,
 	/* unused: */
 	.damage = null_func,
-	.linux_dmabuf = null_func
-};
+	.linux_dmabuf = null_func};
 
 ecode_t wlr_frame_create(struct wlr_frame_data **r_frame_data, struct screenshot_state *state,
 						 struct wl_output_data *output_data)
@@ -197,9 +196,8 @@ ecode_t wlr_frame_create(struct wlr_frame_data **r_frame_data, struct screenshot
 	frame_data->state = state;
 	frame_data->area = output_data->area;
 	frame_data->transform = output_data->transform;
-	frame_data->wlr_frame =
-		zwlr_screencopy_manager_v1_capture_output(state->wayland->wlr_screencopy_manager,
-												  0, output_data->output);
+	frame_data->wlr_frame = zwlr_screencopy_manager_v1_capture_output(
+		state->wayland->wlr_screencopy_manager, 0, output_data->output);
 
 	zwlr_screencopy_frame_v1_add_listener(frame_data->wlr_frame, &wlr_frame_listener, frame_data);
 	*r_frame_data = frame_data;
@@ -215,12 +213,9 @@ ecode_t wlr_frame_create_region(struct wlr_frame_data **r_frame_data,
 	frame_data->state = state;
 	frame_data->area = area;
 	frame_data->transform = output_data->transform;
-	frame_data->wlr_frame =
-		zwlr_screencopy_manager_v1_capture_output_region(state->wayland->wlr_screencopy_manager, 0,
-														 output_data->output,
-														 area.x - output_data->x,
-														 area.y - output_data->y,
-														 area.width, area.height);
+	frame_data->wlr_frame = zwlr_screencopy_manager_v1_capture_output_region(
+		state->wayland->wlr_screencopy_manager, 0, output_data->output, area.x - output_data->x,
+		area.y - output_data->y, area.width, area.height);
 
 	zwlr_screencopy_frame_v1_add_listener(frame_data->wlr_frame, &wlr_frame_listener, frame_data);
 	*r_frame_data = frame_data;
@@ -244,25 +239,25 @@ ecode_t wlr_frame_free(struct wlr_frame_data *frame_data)
 	return WS_OK;
 }
 
-static void cosmic_screencopy_session_event_buffer_size(void *data, struct zcosmic_screencopy_session_v2
-														*zcosmic_screencopy_session_v2,
-														uint32_t width, uint32_t height)
+static void cosmic_screencopy_session_event_buffer_size(
+	void *data, struct zcosmic_screencopy_session_v2 *zcosmic_screencopy_session_v2, uint32_t width,
+	uint32_t height)
 {
 	struct cosmic_frame_data *frame_data = data;
 	frame_data->width = width;
 	frame_data->height = height;
 }
 
-static void cosmic_screencopy_session_event_shm_format(void *data, struct zcosmic_screencopy_session_v2
-													   *zcosmic_screencopy_session_v2,
-													   uint32_t format)
+static void cosmic_screencopy_session_event_shm_format(
+	void *data, struct zcosmic_screencopy_session_v2 *zcosmic_screencopy_session_v2,
+	uint32_t format)
 {
 	struct cosmic_frame_data *frame_data = data;
 	frame_data->format = format;
 }
 
-static void cosmic_screencopy_session_event_done(void *data, struct zcosmic_screencopy_session_v2
-												 *zcosmic_screencopy_session_v2)
+static void cosmic_screencopy_session_event_done(
+	void *data, struct zcosmic_screencopy_session_v2 *zcosmic_screencopy_session_v2)
 {
 	struct cosmic_frame_data *frame_data = data;
 	frame_data->stride = frame_data->width * format_get_depth(frame_data->format);
@@ -270,33 +265,32 @@ static void cosmic_screencopy_session_event_done(void *data, struct zcosmic_scre
 	frame_data->state->n_buffered++;
 }
 
-static void cosmic_screencopy_session_event_stopped(void *data, struct zcosmic_screencopy_session_v2
-													*zcosmic_screencopy_session_v2)
+static void cosmic_screencopy_session_event_stopped(
+	void *data, struct zcosmic_screencopy_session_v2 *zcosmic_screencopy_session_v2)
 {
 	struct cosmic_frame_data *frame_data = data;
-
 }
 
-static const struct zcosmic_screencopy_session_v2_listener cosmic_screencopy_session_listener = {
+const static struct zcosmic_screencopy_session_v2_listener cosmic_screencopy_session_listener = {
 	.buffer_size = cosmic_screencopy_session_event_buffer_size,
 	.shm_format = cosmic_screencopy_session_event_shm_format,
 	.done = cosmic_screencopy_session_event_done,
 	.stopped = cosmic_screencopy_session_event_stopped,
 	/* unused. */
 	.dmabuf_device = null_func,
-	.dmabuf_format = null_func
+	.dmabuf_format = null_func,
 };
 
-static void cosmic_screencopy_frame_event_transform(void *data, struct zcosmic_screencopy_frame_v2
-													*zcosmic_screencopy_frame_v2,
-													uint32_t transform)
+static void cosmic_screencopy_frame_event_transform(
+	void *data, struct zcosmic_screencopy_frame_v2 *zcosmic_screencopy_frame_v2, uint32_t transform)
 {
 	struct cosmic_frame_data *frame_data = data;
 	frame_data->buffer_transform = transform;
 }
 
-static void cosmic_screencopy_frame_event_ready(void *data, struct zcosmic_screencopy_frame_v2
-												*zcosmic_screencopy_frame_v2)
+static void
+cosmic_screencopy_frame_event_ready(void *data,
+									struct zcosmic_screencopy_frame_v2 *zcosmic_screencopy_frame_v2)
 {
 	struct cosmic_frame_data *frame_data = data;
 	frame_data->ready = true;
@@ -304,19 +298,19 @@ static void cosmic_screencopy_frame_event_ready(void *data, struct zcosmic_scree
 	frame_data->state->n_ready++;
 }
 
-static void cosmic_screencopy_frame_event_failed(void *data, struct zcosmic_screencopy_frame_v2
-												 *zcosmic_screencopy_frame_v2, uint32_t reason)
+static void cosmic_screencopy_frame_event_failed(
+	void *data, struct zcosmic_screencopy_frame_v2 *zcosmic_screencopy_frame_v2, uint32_t reason)
 {
 	struct cosmic_frame_data *frame_data = data;
 }
 
-static const struct zcosmic_screencopy_frame_v2_listener cosmic_screencopy_frame_listener = {
+const static struct zcosmic_screencopy_frame_v2_listener cosmic_screencopy_frame_listener = {
 	.transform = cosmic_screencopy_frame_event_transform,
 	.ready = cosmic_screencopy_frame_event_ready,
 	.failed = cosmic_screencopy_frame_event_failed,
-	/* unused. */
+	/* unused: */
 	.damage = null_func,
-	.presentation_time = null_func
+	.presentation_time = null_func,
 };
 
 ecode_t cosmic_frame_create(struct cosmic_frame_data **r_frame_data, struct screenshot_state *state,
@@ -328,22 +322,21 @@ ecode_t cosmic_frame_create(struct cosmic_frame_data **r_frame_data, struct scre
 	frame_data->area = output_data->area;
 	frame_data->transform = output_data->transform;
 
-	/* yeah this suck... */
-	frame_data->cosmic_image_source =
-		zcosmic_output_image_source_manager_v1_create_source(state->wayland->
-															 cosmic_output_image_source_manager,
-															 output_data->output);
-	frame_data->cosmic_session =
-		zcosmic_screencopy_manager_v2_create_session(state->wayland->cosmic_screencopy_manager,
-													 frame_data->cosmic_image_source, 0);
+	/* clang-format off */ /* yeah this suck... */
+	frame_data->cosmic_image_source = zcosmic_output_image_source_manager_v1_create_source(
+		state->wayland->cosmic_output_image_source_manager, output_data->output);
+
+	frame_data->cosmic_session = zcosmic_screencopy_manager_v2_create_session(
+		state->wayland->cosmic_screencopy_manager, frame_data->cosmic_image_source, 0);
 
 	zcosmic_screencopy_session_v2_add_listener(frame_data->cosmic_session,
-											   &cosmic_screencopy_session_listener, frame_data);
-	frame_data->cosmic_frame =
-		zcosmic_screencopy_session_v2_create_frame(frame_data->cosmic_session);
+		&cosmic_screencopy_session_listener, frame_data);
+
+	frame_data->cosmic_frame = zcosmic_screencopy_session_v2_create_frame(frame_data->cosmic_session);
 
 	zcosmic_screencopy_frame_v2_add_listener(frame_data->cosmic_frame,
-											 &cosmic_screencopy_frame_listener, frame_data);
+		&cosmic_screencopy_frame_listener, frame_data);
+	/* clang-format on */
 
 	*r_frame_data = frame_data;
 	return WS_OK;
@@ -388,22 +381,22 @@ static void screenshot_init_buffers(struct screenshot_state *screenshot)
 	switch (screenshot->type) {
 	case SCREENSHOT_TYPE_WLR:
 		struct wlr_frame_data *wlr_frame_data;
-		darray_foreach(screenshot->wlr_frames, wlr_frame_data) {
+		darray_foreach (screenshot->wlr_frames, wlr_frame_data) {
 			struct wl_buffer_data *buffer_data;
-			wl_buffer_create(&buffer_data, screenshot->shm_pool_data,
-							 wlr_frame_data->width, wlr_frame_data->height,
-							 wlr_frame_data->stride, wlr_frame_data->format);
+			wl_buffer_create(&buffer_data, screenshot->shm_pool_data, wlr_frame_data->width,
+							 wlr_frame_data->height, wlr_frame_data->stride,
+							 wlr_frame_data->format);
 			wlr_frame_data->buffer_data = buffer_data;
 		}
 		break;
 
 	case SCREENSHOT_TYPE_COSMIC:
 		struct cosmic_frame_data *cosmic_frame_data;
-		darray_foreach(screenshot->cosmic_frames, cosmic_frame_data) {
+		darray_foreach (screenshot->cosmic_frames, cosmic_frame_data) {
 			struct wl_buffer_data *buffer_data;
-			wl_buffer_create(&buffer_data, screenshot->shm_pool_data,
-							 cosmic_frame_data->width, cosmic_frame_data->height,
-							 cosmic_frame_data->stride, cosmic_frame_data->format);
+			wl_buffer_create(&buffer_data, screenshot->shm_pool_data, cosmic_frame_data->width,
+							 cosmic_frame_data->height, cosmic_frame_data->stride,
+							 cosmic_frame_data->format);
 			cosmic_frame_data->buffer_data = buffer_data;
 		}
 		break;
@@ -444,7 +437,7 @@ static void screenshot_init_output(struct screenshot_state *screenshot,
 static void screenshot_init_region(struct screenshot_state *screenshot, struct rect region)
 {
 	struct wl_output_data *output_data;
-	darray_foreach(screenshot->wayland->outputs, output_data) {
+	darray_foreach (screenshot->wayland->outputs, output_data) {
 		struct rect intersect = rect_intersect(output_data->area, region);
 		if (!rect_is_valid(intersect))
 			continue;
@@ -520,13 +513,13 @@ static void screenshot_copy(struct screenshot_state *screenshot)
 	switch (screenshot->type) {
 	case SCREENSHOT_TYPE_WLR:
 		struct wlr_frame_data *wlr_frame_data;
-		darray_foreach(screenshot->wlr_frames, wlr_frame_data)
+		darray_foreach (screenshot->wlr_frames, wlr_frame_data)
 			wlr_frame_copy(wlr_frame_data);
 		break;
 
 	case SCREENSHOT_TYPE_COSMIC:
 		struct cosmic_frame_data *cosmic_frame_data;
-		darray_foreach(screenshot->cosmic_frames, cosmic_frame_data)
+		darray_foreach (screenshot->cosmic_frames, cosmic_frame_data)
 			cosmic_frame_copy(cosmic_frame_data);
 		break;
 
@@ -572,7 +565,7 @@ static void composite_buffer_onto_base(pixman_image_t *base_image,
 	double x_scale = (double)composite_area.width / (sin_rotation ? height : width);
 	double y_scale = (double)composite_area.height / (sin_rotation ? width : height);
 	bool x_invert = wl_transform & WL_OUTPUT_TRANSFORM_FLIPPED;
-	bool y_invert = wl_transform & (1 << 4);	/* custom y_invert flag for wlr. */
+	bool y_invert = wl_transform & (1 << 4); /* custom y_invert flag for wlr. */
 
 	pixman_format_code_t pixman_format;
 	pixman_format = format_wl_to_pixman(wl_format);
@@ -605,8 +598,8 @@ static void composite_buffer_onto_base(pixman_image_t *base_image,
 	pixman_image_set_transform(part_image, &transform);
 
 	pixman_image_composite32(PIXMAN_OP_SRC, part_image, NULL, base_image, 0, 0, 0, 0,
-							 composite_area.x, composite_area.y,
-							 composite_area.width, composite_area.height);
+							 composite_area.x, composite_area.y, composite_area.width,
+							 composite_area.height);
 
 	pixman_image_unref(part_image);
 }
@@ -615,13 +608,13 @@ static void screenshot_composite(pixman_image_t **r_image, struct screenshot_sta
 {
 	struct rect base_area = screenshot->region;
 	pixman_image_t *base_image = NULL;
-	base_image = pixman_image_create_bits(PIXMAN_a8b8g8r8, base_area.width,
-										  base_area.height, NULL, 0);
+	base_image =
+		pixman_image_create_bits(PIXMAN_a8b8g8r8, base_area.width, base_area.height, NULL, 0);
 
 	switch (screenshot->type) {
 	case SCREENSHOT_TYPE_WLR:
 		struct wlr_frame_data *wlr_frame_data;
-		darray_foreach(screenshot->wlr_frames, wlr_frame_data) {
+		darray_foreach (screenshot->wlr_frames, wlr_frame_data) {
 			struct rect composite_area = wlr_frame_data->area;
 			composite_area.x -= base_area.x;
 			composite_area.y -= base_area.y;
@@ -630,14 +623,14 @@ static void screenshot_composite(pixman_image_t **r_image, struct screenshot_sta
 			int32_t transform = wlr_frame_data->transform;
 			transform += (wlr_frame_data->flags & ZWLR_SCREENCOPY_FRAME_V1_FLAGS_Y_INVERT) << 4;
 
-			composite_buffer_onto_base(base_image, wlr_frame_data->buffer_data,
-									   composite_area, transform);
+			composite_buffer_onto_base(base_image, wlr_frame_data->buffer_data, composite_area,
+									   transform);
 		}
 		break;
 
 	case SCREENSHOT_TYPE_COSMIC:
 		struct cosmic_frame_data *cosmic_frame_data;
-		darray_foreach(screenshot->cosmic_frames, cosmic_frame_data) {
+		darray_foreach (screenshot->cosmic_frames, cosmic_frame_data) {
 			struct rect composite_area = cosmic_frame_data->area;
 			composite_area.x -= base_area.x;
 			composite_area.y -= base_area.y;
@@ -645,8 +638,8 @@ static void screenshot_composite(pixman_image_t **r_image, struct screenshot_sta
 			int32_t transform = cosmic_frame_data->transform;
 			/* TODO: test transform property. */
 
-			composite_buffer_onto_base(base_image, cosmic_frame_data->buffer_data,
-									   composite_area, transform);
+			composite_buffer_onto_base(base_image, cosmic_frame_data->buffer_data, composite_area,
+									   transform);
 		}
 		break;
 
@@ -662,7 +655,7 @@ ecode_t screenshot_capture(pixman_image_t **r_image, struct screenshot_state *sc
 	pixman_image_t *image;
 	screenshot_copy(screenshot);
 	screenshot_composite(&image, screenshot);
- 
+
 	*r_image = image;
 	return WS_OK;
 }
@@ -670,11 +663,11 @@ ecode_t screenshot_capture(pixman_image_t **r_image, struct screenshot_state *sc
 ecode_t screenshot_free(struct screenshot_state *screenshot)
 {
 	struct wlr_frame_data *wlr_frame_data;
-	darray_foreach(screenshot->wlr_frames, wlr_frame_data)
+	darray_foreach (screenshot->wlr_frames, wlr_frame_data)
 		wlr_frame_free(wlr_frame_data);
 
 	struct cosmic_frame_data *cosmic_frame_data;
-	darray_foreach(screenshot->cosmic_frames, cosmic_frame_data)
+	darray_foreach (screenshot->cosmic_frames, cosmic_frame_data)
 		cosmic_frame_free(cosmic_frame_data);
 
 	darray_free(screenshot->wlr_frames);

@@ -4,14 +4,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <xkbcommon/xkbcommon.h>
-#include <wayland-cursor.h>
 #include <linux/input-event-codes.h>
+#include <wayland-cursor.h>
+#include <xkbcommon/xkbcommon.h>
 
-#include "wayshare.h"
-#include "wayland.h"
 #include "logger.h"
 #include "utils.h"
+#include "wayland.h"
+#include "wayshare.h"
 
 /**
  * TODO:
@@ -35,7 +35,7 @@ struct selector_layer {
 	struct wl_surface *surface;
 	bool configured;
 	bool init;
-	struct wl_buffer_data *buffers[2];	/* double buffered per wayland spec. */
+	struct wl_buffer_data *buffers[2]; /* double buffered per wayland spec. */
 	struct wl_buffer_data *current_buffer;
 };
 
@@ -52,8 +52,8 @@ struct selector_pointer {
 	int32_t init_x, init_y;
 };
 
-ecode_t selector_pointer_create(struct selector_pointer **r_pointer,
-								struct selector_state *state, struct wl_seat_data *seat_data);
+ecode_t selector_pointer_create(struct selector_pointer **r_pointer, struct selector_state *state,
+								struct wl_seat_data *seat_data);
 
 ecode_t selector_pointer_free(struct selector_pointer *pointer);
 
@@ -91,9 +91,9 @@ enum selector_mode {
 
 struct selector_state {
 	struct wl_state *wayland;
-	struct darray *layers;	   /* darray<struct selector_layer *> */
-	struct darray *keyboards;  /* darray<struct selector_keyboard *> */
-	struct darray *pointers;   /* darray<struct selector_pointer *> */
+	struct darray *layers;	  /* darray<struct selector_layer *> */
+	struct darray *keyboards; /* darray<struct selector_keyboard *> */
+	struct darray *pointers;  /* darray<struct selector_pointer *> */
 	struct selector_theme theme;
 	struct anchored_rect selection;
 	enum selector_mode mode;
@@ -109,4 +109,4 @@ ecode_t selector_free(struct selector_state *selector);
 
 void selector_request_frame(struct selector_state *state);
 
-#endif						   // WS_SELECTOR_H
+#endif // WS_SELECTOR_H

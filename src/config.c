@@ -1,12 +1,12 @@
 #include "config.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -17,7 +17,7 @@ static ecode_t get_config_path(char **r_config_path)
 	char *path = NULL;
 
 	const char *xdg_config = getenv("XDG_CONFIG_HOME");
-	if (!xdg_config) {		   /* no $XDG_CONFIG_HOME envar, try "$HOME/.config". */
+	if (!xdg_config) { /* no $XDG_CONFIG_HOME envar, try "$HOME/.config". */
 		const char *home;
 		ecode_t code;
 		code = get_home_path(&home);
@@ -28,7 +28,6 @@ static ecode_t get_config_path(char **r_config_path)
 		strlen = snprintf(NULL, 0, "%s%s", home, home_suffix);
 		path = malloc(strlen + 1);
 		snprintf(path, strlen + 1, "%s%s", home, home_suffix);
-
 	} else {
 		size_t strlen;
 		strlen = snprintf(NULL, 0, "%s%s", xdg_config, xdg_config_suffix);
@@ -84,7 +83,7 @@ ecode_t get_uploader_json_name(struct json_object **r_uploader_json,
 	return WS_OK;
 }
 
-static const char *get_type_key(enum uploader_type type)
+const static char *get_type_key(enum uploader_type type)
 {
 	switch (type) {
 	case UPLOADER_TYPE_OTHER:
@@ -133,31 +132,35 @@ ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
 
 static inline bool is_prefix_invalid(const char *prefix, size_t spn)
 {
+	/* clang-format off */ /* weird formatting. */
 	return spn < 1 || spn > 3
 		|| (spn == 2) ? strncmp(prefix, ".[", 2) && strncmp(prefix, "[\"", 2) : 0
 		|| (spn == 3) ? strncmp(prefix, ".[\"", 3) : 0;
+	/* clang-format on */
 }
 
 static inline bool is_suffix_invalid(const char *suffix, size_t spn, char type)
 {
-	return spn > 2
-		|| (type == '[') ? spn != 1 || strncmp(suffix, "]", 1) : 0
+	/* clang-format off */ /* weird formatting. */
+	return spn > 2 
+		|| (type == '[') ? spn != 1 || strncmp(suffix, "]", 1) : 0 
 		|| (type == '"') ? spn != 2 || strncmp(suffix, "\"]", 2) : 0;
+	/* clang-format on */
 }
 
 static ecode_t handle_token(struct json_object **trv_json, char *token, const char type)
 {
 	if (*trv_json == NULL)
-		return WSE_CONFIG_NJSON_OBJECT;	/* json error. */
+		return WSE_CONFIG_NJSON_OBJECT; /* json error. */
 
 	if (type == '[') {
 		long index;
 		index = strtol(token, NULL, 10);
 		if (errno == ERANGE)
-			return WSE_CONFIG_JSON_PATHF;	/* out of range error. */
+			return WSE_CONFIG_JSON_PATHF; /* out of range error. */
 
 		if (!json_object_is_type(*trv_json, json_type_array))
-			return WSE_CONFIG_JSON_PATHF;	/* json error. */
+			return WSE_CONFIG_JSON_PATHF; /* json error. */
 
 		unsigned long arrlen;
 		arrlen = json_object_array_length(*trv_json);
@@ -167,7 +170,7 @@ static ecode_t handle_token(struct json_object **trv_json, char *token, const ch
 		*trv_json = json_object_array_get_idx(*trv_json, index);
 	} else {
 		if (!json_object_is_type(*trv_json, json_type_object))
-			return WSE_CONFIG_JSON_PATHF;	/* json error. */
+			return WSE_CONFIG_JSON_PATHF; /* json error. */
 
 		*trv_json = json_object_object_get(*trv_json, token);
 	}
@@ -191,7 +194,7 @@ ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_
 		c_token = n_token;
 		size_t c_prespn = strspn(c_token, ".[\"");
 		if (is_prefix_invalid(c_token, c_prespn))
-			return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
+			return WSE_CONFIG_JSON_PATHF; /* syntax error. */
 
 		c_token += c_prespn;
 		char c_type = c_token[-1];
@@ -204,17 +207,17 @@ ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_
 		else if (c_type == '"')
 			n_token = strchr(c_token, '"');
 		else
-			return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
+			return WSE_CONFIG_JSON_PATHF; /* syntax error. */
 
 		/* check for a valid suffix. */
 		size_t c_sufspn;
 		if (c_type != '.') {
 			if (n_token == NULL)
-				return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
+				return WSE_CONFIG_JSON_PATHF; /* syntax error. */
 
 			c_sufspn = strspn(n_token, "\"]");
 			if (is_suffix_invalid(n_token, c_sufspn, c_type))
-				return WSE_CONFIG_JSON_PATHF;	/* syntax error. */
+				return WSE_CONFIG_JSON_PATHF; /* syntax error. */
 		}
 
 		if (n_token != NULL) {
@@ -274,7 +277,7 @@ ecode_t format_variable_string(char **r_str, const char *vstr, struct json_objec
 		c_token++;
 		n_token = strchr(c_token, '$');
 		if (n_token == NULL)
-			return WSE_CONFIG_NVAR_CLOSE;	/* syntax error. */
+			return WSE_CONFIG_NVAR_CLOSE; /* syntax error. */
 
 		n_token[0] = '\0';
 		n_token++;
@@ -282,11 +285,11 @@ ecode_t format_variable_string(char **r_str, const char *vstr, struct json_objec
 
 		const char *value = NULL;
 		if (get_variable_value(&value, c_token))
-			return WSE_CONFIG_NVAR_VALUE;	/* invalid variable key. */
+			return WSE_CONFIG_NVAR_VALUE; /* invalid variable key. */
 
 		size_t keylen = strlen(c_token);
 		size_t vallen = strlen(value);
-		int32_t delta = vallen - keylen - 2;	/* -2 for the '$'s. */
+		int32_t delta = vallen - keylen - 2; /* -2 for the '$'s. */
 		t_delta += delta;
 
 		/* realloc to new +delta size. */
