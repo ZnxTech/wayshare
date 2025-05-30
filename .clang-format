@@ -47,14 +47,14 @@ AlignTrailingComments:
 AllowAllArgumentsOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowBreakBeforeNoexceptSpecifier: Never
-AllowShortBlocksOnASingleLine: Always
-AllowShortCaseExpressionOnASingleLine: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseExpressionOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortCompoundRequirementOnASingleLine: true
-AllowShortEnumsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: Never
-AllowShortLoopsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
 AlwaysBreakBeforeMultilineStrings: true
 BinPackArguments: true
 BinPackParameters: true
@@ -79,7 +79,8 @@ BracedInitializerIndentWidth: 4
 BreakAdjacentStringLiterals: true
 BreakAfterReturnType: Automatic
 BreakBeforeBinaryOperators: NonAssignment
-BreakBeforeBraces: Linux
+BreakBeforeBraces: Custom
+
 BreakBeforeInlineASMColon: OnlyMultiline
 BreakBeforeTernaryOperators: true
 BreakFunctionDefinitionParameters: false
@@ -106,7 +107,6 @@ IndentWidth: 4
 IndentWrappedFunctionNames: false
 InsertBraces: false
 InsertNewlineAtEOF: true
-InsertTrailingCommas: None
 KeepEmptyLines:
   AtEndOfFile: false
   AtStartOfBlock: false
