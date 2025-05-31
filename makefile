@@ -39,7 +39,7 @@ format:
 # code compilation
 $(c_obj): ./build/obj/%.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
-	clang -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn) -s
+	clang -c $< $(c_incs) -o ./$@ $(c_defs) $(c_warn)
 
 $(c_obj_debug): ./build/obj/%-debug.o: ./src/%.c $(c_head) $(wl_head)
 	@mkdir ./build/obj -p
