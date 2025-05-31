@@ -60,7 +60,7 @@ static void png_event_flush(png_struct *png)
 	/* left empty. */
 }
 
-ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, int32_t comp_level)
+ecode_t png_write_from_pixman(void **r_data, size_t *r_size, pixman_image_t *image, int32_t comp_level)
 {
 	int image_width = pixman_image_get_width(image);
 	int image_height = pixman_image_get_height(image);
@@ -122,6 +122,9 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	if (png_handle)
 		png_destroy_write_struct(&png_handle, NULL);
 
-	*r_buffer = buffer;
+	/* dirty darray hack. */
+	*r_data = buffer->data;
+	*r_size = buffer->count;
+	free(buffer);
 	return WS_OK;
 }
