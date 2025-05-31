@@ -2,6 +2,52 @@
 
 #include <png.h>
 
+/* checks if the image has transparancy or not. */
+static bool check_pixman_transparency(const void *data, int width, int height, int stride)
+{
+	for (int y = 0; y < height; y++) {
+		const uint32_t *row = (data + y * stride);
+		for (int x = 0; x < width; x++) {
+			if (row[x] >> 24 != 0xff)
+				return true;
+		}
+	}
+	/* no transparancy found, all pixels are opaque. */
+	return false;
+}
+
+static void pack_png_row(void *png_row, const void *pixman_row, int width, bool transparent)
+{
+	/* png and pixman rows are identical,
+	   memcpy and skip packing process. */
+	if (transparent) {
+		/* RGBA 4 byte pixel size */
+		memcpy(png_row, pixman_row, width * 4);
+		return;
+	}
+
+	for (int x = 0; x < width; x++) {
+		/* fetch pixel colors */
+		uint8_t r = ((uint32_t *)pixman_row)[x] >> 0 & 0xff;
+		uint8_t g = ((uint32_t *)pixman_row)[x] >> 8 & 0xff;
+		uint8_t b = ((uint32_t *)pixman_row)[x] >> 16 & 0xff;
+		uint8_t a = ((uint32_t *)pixman_row)[x] >> 24 & 0xff;
+
+		/* revert from premult alpha colors,
+		   dont if alpha is 0 or 255. */
+		if (a != 0x00 && a != 0xff) {
+			r = ((uint16_t)r * 0xff) / a;
+			g = ((uint16_t)g * 0xff) / a;
+			b = ((uint16_t)b * 0xff) / a;
+		}
+
+		/* pack into {png_row}. */
+		*(uint8_t *)png_row++ = r;
+		*(uint8_t *)png_row++ = g;
+		*(uint8_t *)png_row++ = b;
+	}
+}
+
 static void png_event_write(png_struct *handle, png_byte *data, size_t size)
 {
 	struct darray *write_buffer;
@@ -19,7 +65,10 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	int image_width = pixman_image_get_width(image);
 	int image_height = pixman_image_get_height(image);
 	int image_stride = pixman_image_get_stride(image);
-	uint8_t *data = (uint8_t *)pixman_image_get_data(image);
+	void *data = (void *)pixman_image_get_data(image);
+
+	bool transparent;
+	transparent = check_pixman_transparency(data, image_width, image_height, image_height);
 
 	png_struct *png_handle = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_handle)
@@ -40,8 +89,8 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	png_set_write_fn(png_handle, buffer, png_event_write, png_event_flush);
 
 	png_set_IHDR(png_handle, png_info, (uint32_t)image_width, (uint32_t)image_height, 8,
-				 PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_BASE,
-				 PNG_FILTER_TYPE_BASE);
+				 (transparent) ? PNG_COLOR_TYPE_RGBA : PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+				 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
 	png_write_info(png_handle, png_info);
 
@@ -57,9 +106,11 @@ ecode_t png_write_from_pixman(struct darray **r_buffer, pixman_image_t *image, i
 	else
 		png_set_filter(png_handle, PNG_FILTER_TYPE_BASE, PNG_ALL_FILTERS);
 
+	uint8_t png_row[image_width * ((transparent) ? 4 : 3)];
 	for (int y = 0; y < image_height; y++) {
-		uint8_t *row_data = (data + y * image_stride);
-		png_write_row(png_handle, row_data);
+		void *pixman_row = (data + y * image_stride);
+		pack_png_row(png_row, pixman_row, image_width, transparent);
+		png_write_row(png_handle, png_row);
 	}
 
 	png_write_end(png_handle, NULL);

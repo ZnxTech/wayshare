@@ -2,9 +2,28 @@
 
 #include <jpeglib.h>
 
+/* checks if the image has transparancy or not. */
+static bool check_pixman_transparency(void *data, int width, int height, int stride)
+{
+	for (int y = 0; y < height; y++) {
+		uint32_t *row = (data + y * stride);
+		for (int x = 0; x < width; x++) {
+			if (row[x] >> 24 != 0xff)
+				return true;
+		}
+	}
+	/* no transparancy found, all pixels are opaque. */
+	return false;
+}
+
 ecode_t jpeg_write_from_pixman(uint8_t **r_data, size_t *r_size, pixman_image_t *image,
 							   int32_t comp_level)
 {
+	int image_height = pixman_image_get_height(image);
+	int image_width = pixman_image_get_width(image);
+	int image_stride = pixman_image_get_stride(image);
+	void *data = pixman_image_get_data(image);
+
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	cinfo.err = jpeg_std_error(&jerr);
@@ -14,19 +33,17 @@ ecode_t jpeg_write_from_pixman(uint8_t **r_data, size_t *r_size, pixman_image_t 
 	size_t buffer_size = 0;
 	jpeg_mem_dest(&cinfo, &buffer_data, &buffer_size);
 
-	cinfo.image_width = pixman_image_get_width(image);
-	cinfo.image_height = pixman_image_get_height(image);
+	cinfo.image_width = image_width;
+	cinfo.image_height = image_height;
 
-	pixman_format_code_t format = pixman_image_get_format(image);
-	if (format == PIXMAN_a8r8g8b8) {
-		cinfo.in_color_space = JCS_EXT_BGRA;
+	if (check_pixman_transparency(data, image_width, image_height, image_stride)) {
+		cinfo.in_color_space = JCS_EXT_RGBA;
 		cinfo.input_components = 4;
-	} else if (format == PIXMAN_x8r8g8b8) {
-		cinfo.in_color_space = JCS_EXT_BGRX;
+	} else {
+		/* thankfully provides an RGBX space,
+		   no need for packing. unlike libpng... */
+		cinfo.in_color_space = JCS_EXT_RGBX;
 		cinfo.input_components = 4;
-	} else if (format == PIXMAN_r8g8b8) {
-		cinfo.in_color_space = JCS_EXT_BGR;
-		cinfo.input_components = 3;
 	}
 
 	/* calculate quality 0..100 from wayshare compression 255..0 */
@@ -40,10 +57,8 @@ ecode_t jpeg_write_from_pixman(uint8_t **r_data, size_t *r_size, pixman_image_t 
 	jpeg_start_compress(&cinfo, TRUE);
 
 	JSAMPROW row_pointer[1];
-	uint8_t *image_data = pixman_image_get_data(image);
-	size_t image_stride = pixman_image_get_stride(image);
 	while (cinfo.next_scanline < cinfo.image_height) {
-		row_pointer[0] = image_data + cinfo.next_scanline * image_stride;
+		row_pointer[0] = data + cinfo.next_scanline * image_stride;
 		jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}
 
