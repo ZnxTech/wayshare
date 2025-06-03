@@ -31,20 +31,6 @@
  * basic mathematical abstractions.
  */
 
-#define max(a, b) 			\
-	({						\
-		typeof(a) _a = a;	\
-	  	typeof(b) _b = b;	\
-		_a < _b ? _b : _a;	\
-	})
-
-#define min(a, b) 			\
-	({						\
-		typeof(a) _a = a;	\
-	  	typeof(b) _b = b;	\
-		_a < _b ? _a : _b;	\
-	})
-
 /**
  * <struct rect>
  * a basic rectangle struct.
