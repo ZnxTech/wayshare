@@ -29,13 +29,21 @@ static void wl_output_event_scale(void *data, struct wl_output *wl_output, int32
 	output_data->scale_factor = factor;
 }
 
+static void wl_output_event_name(void *data, struct wl_output *wl_output, const char *name)
+{
+	struct wl_output_data *output_data = data;
+	/* copy name variable, name string get overwritten later??? */
+	output_data->name = malloc(strlen(name) + 1);
+	strcpy(output_data->name, name);
+}
+
 const static struct wl_output_listener output_listener = {
 	.geometry = wl_output_event_geometry,
 	.mode = wl_output_event_mode,
 	.scale = wl_output_event_scale,
+	.name = wl_output_event_name,
 	/* unused: */
 	.done = null_func,
-	.name = null_func,
 	.description = null_func,
 };
 
@@ -248,6 +256,7 @@ ecode_t wl_state_disconnect(struct wl_state *state)
 	if (state->display != NULL)
 		wl_display_disconnect(state->display);
 
+	free(state);
 	return WS_OK;
 }
 
@@ -268,6 +277,9 @@ ecode_t wl_output_free(struct wl_output_data *output_data)
 {
 	if (output_data->output != NULL)
 		wl_output_destroy(output_data->output);
+
+	if (output_data->name != NULL)
+		free(output_data->name);
 
 	free(output_data);
 	return WS_OK;

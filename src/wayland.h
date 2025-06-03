@@ -63,6 +63,7 @@ struct wl_output_data {
 
 	int32_t transform;
 	int32_t scale_factor;
+	char *name;
 };
 
 ecode_t wl_output_create(struct wl_output_data **r_output_data, struct wl_state *state,
