@@ -1,5 +1,8 @@
 #include "jpeg.h"
 
+#include <stdio.h>
+#include <sys/types.h>
+
 #include <jpeglib.h>
 
 /* checks if the image has transparancy or not. */
