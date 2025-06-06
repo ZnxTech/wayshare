@@ -1,7 +1,6 @@
 #ifndef WS_SELECTOR_H
 #define WS_SELECTOR_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include <linux/input-event-codes.h>
