@@ -1,8 +1,8 @@
 #include "config.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -244,21 +244,70 @@ ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_
 	return WS_OK;
 }
 
-static ecode_t get_variable_value(const char **r_value, const char *key)
+static char *get_date_str()
+{
+	time_t unix_time;
+	time(&unix_time);
+
+	struct tm *tm_time;
+	tm_time = localtime(&unix_time);
+
+	int len = snprintf(NULL, 0, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1, tm_time->tm_mday);
+	char *str = malloc(len + 1);
+	snprintf(str, len + 1, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1, tm_time->tm_mday);
+	return str;
+}
+
+static char *get_time_str()
+{
+	time_t unix_time;
+	time(&unix_time);
+
+	struct tm *tm_time;
+	tm_time = localtime(&unix_time);
+
+	int len = snprintf(NULL, 0, "%i_%i_%i", tm_time->tm_hour, tm_time->tm_min, tm_time->tm_sec);
+	char *str = malloc(len + 1);
+	snprintf(str, len + 1, "%i_%i_%i", tm_time->tm_hour, tm_time->tm_min, tm_time->tm_sec);
+	return str;
+}
+
+static char *get_epoch_str()
+{
+	time_t unix_time;
+	time(&unix_time);
+
+	int len = snprintf(NULL, 0, "%lli", unix_time);
+	char *str = malloc(len + 1);
+	snprintf(str, len + 1, "%lli", unix_time);
+	return str;
+}
+
+static ecode_t get_value_str(const char **r_value, const char *key, struct json_object *response_json)
 {
 	if (strcmp(key, "") == 0) {
-		char *value = malloc(strlen("$") + 1);
-		*r_value = strcpy(value, "$");
-	} else if (strcmp(key, "hey") == 0) {
-		char *value = malloc(strlen("hey!") + 1);
-		*r_value = strcpy(value, "hey!");
+		*r_value = strdup("$");
+	} else if (strcmp(key, "epoch") == 0) {
+		*r_value = get_epoch_str();
+	} else if (strcmp(key, "time") == 0) {
+		*r_value = get_time_str();
+	} else if (strcmp(key, "date") == 0) {
+		*r_value = get_date_str();
+	} else if (strcmp(key, "home") == 0) {
+		const char *home_path;
+		get_home_path(&home_path);
+		*r_value = strdup(home_path);
+	} else if (strncmp(key, "json:", 5) == 0 && response_json != NULL) {
+		struct json_object *var_json;
+		json_get_from_path(&var_json, response_json, key + 5);
+		*r_value = strdup(json_object_get_string(var_json));
 	} else
 		return WSE_CONFIG_NVAR_VALUE;
 
 	return WS_OK;
 }
 
-ecode_t format_variable_string(char **r_str, const char *vstr, struct json_object *response_json)
+ecode_t format_vstr(char **r_str, const char *vstr, struct json_object *response_json)
 {
 	/* parse string. */
 	char vstrbuf[strlen(vstr) + 1];
@@ -284,7 +333,7 @@ ecode_t format_variable_string(char **r_str, const char *vstr, struct json_objec
 		n_token = strchr(n_token, '$');
 
 		const char *value = NULL;
-		if (get_variable_value(&value, c_token))
+		if (get_value_str(&value, c_token, response_json))
 			return WSE_CONFIG_NVAR_VALUE; /* invalid variable key. */
 
 		size_t keylen = strlen(c_token);

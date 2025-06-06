@@ -24,6 +24,6 @@ ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
 ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_json,
 						   const char *path);
 
-ecode_t format_variable_string(char **r_str, const char *vstr, struct json_object *response_json);
+ecode_t format_vstr(char **r_str, const char *vstr, struct json_object *response_json);
 
 #endif // WS_CONFIG_H
