@@ -50,9 +50,9 @@ static void pack_png_row(void *png_row, const void *pixman_row, int width, bool 
 
 static void png_event_write(png_struct *handle, png_byte *data, size_t size)
 {
-	struct darray *write_buffer;
-	write_buffer = png_get_io_ptr(handle);
-	darray_append_array(write_buffer->data, data, size / sizeof(png_byte));
+	struct darray *buffer;
+	buffer = png_get_io_ptr(handle);
+	darray_append_array(buffer, data, size / sizeof(png_byte));
 }
 
 static void png_event_flush(png_struct *png)
@@ -60,7 +60,8 @@ static void png_event_flush(png_struct *png)
 	/* left empty. */
 }
 
-ecode_t png_write_from_pixman(void **r_data, size_t *r_size, pixman_image_t *image, int32_t comp_level)
+ecode_t png_write_from_pixman(void **r_data, size_t *r_size, pixman_image_t *image,
+							  int32_t comp_level)
 {
 	int image_width = pixman_image_get_width(image);
 	int image_height = pixman_image_get_height(image);
