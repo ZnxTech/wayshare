@@ -21,6 +21,9 @@ ecode_t get_uploader_json_name(struct json_object **r_uploader_json,
 ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
 							   struct json_object *config_json, enum uploader_type type);
 
+ecode_t get_uploader_json_ext(struct json_object **r_uploader_json, struct json_object *config_json,
+							  const char *format);
+
 ecode_t json_get_from_path(struct json_object **r_json, struct json_object *src_json,
 						   const char *path);
 

@@ -12,8 +12,8 @@
 
 static ecode_t get_config_path(char **r_config_path)
 {
-	const char *home_suffix = "/.config/wayhsare/config.json";
-	const char *xdg_config_suffix = "/wayhsare/config.json";
+	const char *home_suffix = "/.config/wayshare/config.json";
+	const char *xdg_config_suffix = "/wayshare/config.json";
 	char *path = NULL;
 
 	const char *xdg_config = getenv("XDG_CONFIG_HOME");
@@ -21,7 +21,7 @@ static ecode_t get_config_path(char **r_config_path)
 		const char *home;
 		ecode_t code;
 		code = get_home_path(&home);
-		if (!code)
+		if (code)
 			return WSE_CONFIG_NHOME;
 
 		size_t strlen;
@@ -75,7 +75,7 @@ ecode_t get_uploader_json_name(struct json_object **r_uploader_json,
 		return WSE_CONFIG_NJSON_OBJECT;
 
 	struct json_object *uploader_json;
-	uploader_json = json_object_object_get(config_json, name);
+	uploader_json = json_object_object_get(uploaders_json, name);
 	if (!uploader_json || !json_object_is_type(uploader_json, json_type_object))
 		return WSE_CONFIG_NJSON_OBJECT;
 
@@ -109,13 +109,13 @@ const static char *get_type_key(enum uploader_type type)
 ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
 							   struct json_object *config_json, enum uploader_type type)
 {
-	struct json_object *wayshare_json;
-	wayshare_json = json_object_object_get(config_json, "wayshare");
-	if (!wayshare_json || !json_object_is_type(wayshare_json, json_type_object))
+	struct json_object *formats_json;
+	formats_json = json_object_object_get(config_json, "formats");
+	if (!formats_json || !json_object_is_type(formats_json, json_type_object))
 		return WSE_CONFIG_NJSON_OBJECT;
 
 	struct json_object *uploader_name_json;
-	uploader_name_json = json_object_object_get(config_json, get_type_key(type));
+	uploader_name_json = json_object_object_get(formats_json, get_type_key(type));
 	if (!uploader_name_json || !json_object_is_type(uploader_name_json, json_type_string))
 		return WSE_CONFIG_NJSON_OBJECT;
 
@@ -128,6 +128,52 @@ ecode_t get_uploader_json_type(struct json_object **r_uploader_json,
 
 	*r_uploader_json = uploader_json;
 	return WS_OK;
+}
+
+ecode_t get_uploader_json_ext(struct json_object **r_uploader_json, struct json_object *config_json,
+							  const char *format)
+{
+	struct json_object *formats_json;
+	formats_json = json_object_object_get(config_json, "formats");
+	if (!formats_json || !json_object_is_type(formats_json, json_type_object))
+		return WSE_CONFIG_NJSON_OBJECT;
+
+	/* exts lists ordered from lowest value to highest
+	   in their corresponding uploader type enum, resulting in: enum = i + 1. */
+	const char *exts_lists[] = {"text_extentions", "image_extentions", "audio_extentions",
+								"video_extentions"};
+
+	enum uploader_type type;
+	for (size_t i_exts_list = 0; i_exts_list < 4; i_exts_list++) {
+		struct json_object *c_exts_arr;
+		c_exts_arr = json_object_object_get(formats_json, exts_lists[i_exts_list]);
+		if (!formats_json || !json_object_is_type(c_exts_arr, json_type_array))
+			continue;
+
+		size_t len = json_object_array_length(c_exts_arr);
+		for (size_t i_ext = 0; i_ext < len; i_ext++) {
+			struct json_object *c_ext;
+			c_ext = json_object_array_get_idx(c_exts_arr, i_ext);
+			if (!formats_json || !json_object_is_type(c_ext, json_type_string))
+				continue;
+
+			const char *c_ext_str;
+			c_ext_str = json_object_get_string(c_ext);
+			if (!strcasecmp(c_ext_str, format)) {
+				type = i_exts_list + 1;
+				if (get_uploader_json_type(r_uploader_json, config_json, type))
+					return WSE_CONFIG_NJSON_OBJECT;
+				else
+					return WS_OK;
+			}
+		}
+	}
+
+	/* not in any exts arr, escape to other. */
+	if (get_uploader_json_type(r_uploader_json, config_json, UPLOADER_TYPE_OTHER))
+		return WSE_CONFIG_NJSON_OBJECT;
+	else
+		return WS_OK;
 }
 
 static inline bool is_prefix_invalid(const char *prefix, size_t spn)
@@ -252,9 +298,11 @@ static char *get_date_str()
 	struct tm *tm_time;
 	tm_time = localtime(&unix_time);
 
-	int len = snprintf(NULL, 0, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1, tm_time->tm_mday);
+	int len = snprintf(NULL, 0, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1,
+					   tm_time->tm_mday);
 	char *str = malloc(len + 1);
-	snprintf(str, len + 1, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1, tm_time->tm_mday);
+	snprintf(str, len + 1, "%i_%i_%i", tm_time->tm_year + 1900, tm_time->tm_mon + 1,
+			 tm_time->tm_mday);
 	return str;
 }
 
@@ -283,7 +331,8 @@ static char *get_epoch_str()
 	return str;
 }
 
-static ecode_t get_value_str(const char **r_value, const char *key, struct json_object *response_json)
+static ecode_t get_value_str(const char **r_value, const char *key,
+							 struct json_object *response_json)
 {
 	if (strcmp(key, "") == 0) {
 		*r_value = strdup("$");
