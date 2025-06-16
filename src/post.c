@@ -77,7 +77,7 @@ static ecode_t get_curl_url(CURLU **r_url, json_object *url_json, json_object *q
 ecode_t request_generic_file(json_object **r_response_json, json_object *uploader_json,
 							 void *file_data, size_t file_size, const char *file_name)
 {
-	json_object *upload_method_json = json_object_object_get(uploader_json, "upload_method");
+	json_object *upload_method_json = json_object_object_get(uploader_json, "upload_type");
 
 	if (!json_object_is_type(upload_method_json, json_type_string))
 		return WSE_POST_NSETTING;
